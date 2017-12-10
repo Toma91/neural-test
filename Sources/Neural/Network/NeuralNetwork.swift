@@ -35,9 +35,7 @@ public class NeuralNetwork {
 
 public extension NeuralNetwork {
     
-    typealias TrainingSample = (data: [Double], output: [Double])
-    
-    func train<S: Sequence>(withSet trainingSet: S) where S.Element == TrainingSample {
+    func train<TS: Collection>(withSet trainingSet: TS) where TS.Element == (data: InputData, expectedOutput: OutputData) {
         for i in 0 ..< neurons.count {
             neurons[i] = Double(Int(arc4random()) % 1001 - 500) / 500
         }
@@ -62,7 +60,9 @@ public extension NeuralNetwork {
         }
     }
     
-    private func cost(output: [Double], expected: [Double]) -> Double {
+    private func cost<O: Collection, EO: Collection>(output: O, expected: EO) -> Double
+        where O.Element == Double, EO.Element == Double {
+            
         return zip(output, expected)
             .map { ($0 - $1) * ($0 - $1) }
             .reduce(into: 0, +=)
@@ -72,7 +72,7 @@ public extension NeuralNetwork {
 
 public extension NeuralNetwork {
     
-    func predict(input: [Double]) -> [Double] /* -> Something */ {
+    func predict(input: InputData) -> OutputData {
         precondition(
             input.count == networkInfo.inputSize,
             "Wrong input size, expected \(networkInfo.inputSize), got \(input.count)"
@@ -82,15 +82,13 @@ public extension NeuralNetwork {
             predictLayer(atIndex: l, input: input)
         }
         
-        return Array(neurons.suffix(networkInfo.outputSize))
+        return OutputData(neurons.suffix(networkInfo.outputSize))
     }
     
-    private func predictLayer(atIndex layer: Int, input: [Double]) {
+    private func predictLayer(atIndex layer: Int, input: InputData) {
         precondition(layer >= 0 && layer <= networkInfo.hiddenLayers)
 
-        let a = layer == 0
-            ? input.withUnsafeBufferPointer(Vector.init)
-            : self.input(forLayer: layer)
+        let a = layer == 0 ? input : self.input(forLayer: layer)
         
         let size = layer == networkInfo.hiddenLayers
             ? networkInfo.outputSize
@@ -104,11 +102,11 @@ public extension NeuralNetwork {
         }
     }
     
-    private func input(forLayer layer: Int) -> Vector<Double> {
+    private func input(forLayer layer: Int) -> InputData {
         precondition(layer >= 1 && layer <= networkInfo.hiddenLayers)
         
-        return Vector(
-            memory: UnsafeBufferPointer(
+        return InputData(
+            UnsafeBufferPointer(
                 rebasing: neurons.slice(
                     from: networkInfo.hiddenLayerSize * layer.advanced(by: -1),
                     count: networkInfo.hiddenLayerSize
@@ -117,27 +115,23 @@ public extension NeuralNetwork {
         )
     }
     
-    private func weights(forLayer layer: Int, stage: Int) -> Vector<Double> {
+    private func weights(forLayer layer: Int, stage: Int) -> UnsafeBufferPointer<Double> {
         precondition(layer >= 0 && layer <= networkInfo.hiddenLayers)
     
         if layer == 0 {
-            return Vector(
-                memory: UnsafeBufferPointer(
-                    rebasing: weights.slice(
-                        from: networkInfo.inputSize * stage,
-                        count: networkInfo.inputSize
-                    )
+            return UnsafeBufferPointer(
+                rebasing: weights.slice(
+                    from: networkInfo.inputSize * stage,
+                    count: networkInfo.inputSize
                 )
             )
         } else {
-            return Vector(
-                memory: UnsafeBufferPointer(
-                    rebasing: weights.slice(
-                        from: networkInfo.inputSize * networkInfo.hiddenLayerSize
-                            + networkInfo.hiddenLayerSize * (networkInfo.hiddenLayerSize * layer.advanced(by: -1))
-                            + networkInfo.hiddenLayerSize * stage,
-                        count: networkInfo.hiddenLayerSize
-                    )
+            return UnsafeBufferPointer(
+                rebasing: weights.slice(
+                    from: networkInfo.inputSize * networkInfo.hiddenLayerSize
+                        + networkInfo.hiddenLayerSize * (networkInfo.hiddenLayerSize * layer.advanced(by: -1))
+                        + networkInfo.hiddenLayerSize * stage,
+                    count: networkInfo.hiddenLayerSize
                 )
             )
         }

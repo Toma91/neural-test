@@ -31,12 +31,7 @@ public struct NetworkInfo {
     }
     
     
-    public init(
-        inputSize: Int,
-        hiddenLayers: Int,
-        hiddenLayerSize: Int,
-        outputSize: Int)
-    {
+    public init(inputSize: Int, hiddenLayers: Int, hiddenLayerSize: Int, outputSize: Int) {
         self.inputSize          = inputSize
         self.hiddenLayers       = hiddenLayers
         self.hiddenLayerSize    = hiddenLayerSize

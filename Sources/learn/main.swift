@@ -20,16 +20,19 @@ guard let f = IdxFile(path: CommandLine.arguments[1]) else {
 
 let network = NeuralNetwork(
   networkInfo: NetworkInfo(
-    inputSize: f.width * f.height,
+    inputSize: f.dimensions.suffix(from: 1).reduce(1, *),
     hiddenLayers: 2,
     hiddenLayerSize: 16,
     outputSize: 10
   )
 )    
 
-let trainingSet = (0 ..< f.numberOfItems).lazy.map {
-    (data: f[$0].asNetworkInput(), output: [1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10].map({ $0 / 10 }))
+let expectedOutput = OutputData([1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10].map({ $0 / 10 }))
+
+let trainingSet = (0 ..< f.dimensions[0]).lazy.map {
+    (data: InputData(f[$0].lazy.map({ Double($0) / 255 })), expectedOutput: expectedOutput)
 }
 
 network.train(withSet: trainingSet)
-print(network.predict(input: f[0].asNetworkInput()))
+print(network.predict(input: InputData(f[0].lazy.map({ Double($0) / 255 }))))
+

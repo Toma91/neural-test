@@ -9,17 +9,13 @@ import Darwin.C
 
 public class IdxFile {
     
-    private let fd:             Int32
+    private let fd:         Int32
     
-    private var storage:        UnsafePointer<UInt8>
+    private var storage:    UnsafePointer<UInt8>
 
-    private let mapping:        UnsafeBufferPointer<UInt8>
+    private let mapping:    UnsafeBufferPointer<UInt8>
     
-    public let numberOfItems:   Int
-    
-    public let width:           Int
-    
-    public let height:          Int
+    public let dimensions:  [Int]
     
     
     public init?(path: String) {
@@ -29,7 +25,7 @@ public class IdxFile {
         let size = Int(lseek(fd, 0, SEEK_END))
         
         guard
-            size >= 16,
+            size >= 4,
             let ptr = mmap(nil, size, PROT_READ, MAP_SHARED, fd, 0)
             else { return nil }
         
@@ -37,18 +33,19 @@ public class IdxFile {
         let ptr32 = ptr.assumingMemoryBound(to: UInt32.self)
         
         let mapping = UnsafeBufferPointer(start: ptr8, count: size)
-        if mapping[3] != 3 { return nil }
+        guard mapping[2] == 0x08 else { return nil }
+
+        let nDimensions = Int(mapping[3])
+        guard size >= 4 * (1 + nDimensions) else { return nil }
+
+        let dimensions = (0 ..< nDimensions).map {
+            Int(ptr32[$0 + 1].swapped)
+        }
         
-        let numberOfItems = Int(ptr32[1].swapped)
-        let w = Int(ptr32[2].swapped)
-        let h = Int(ptr32[3].swapped)
-        
-        self.fd             = fd
-        self.storage        = UnsafePointer(ptr8)
-        self.mapping        = mapping
-        self.numberOfItems  = numberOfItems
-        self.width          = w
-        self.height         = h
+        self.fd         = fd
+        self.storage    = UnsafePointer(ptr8)
+        self.mapping    = mapping
+        self.dimensions = dimensions
     }
     
     deinit {
@@ -64,23 +61,13 @@ public class IdxFile {
 
 public extension IdxFile {
     
-    subscript(index: Int) -> IdxImage {
+    subscript(index: Int) -> UnsafeBufferPointer<UInt8> {
         get {
-            let offset = 16 + index * width * height
+            precondition(index < dimensions[0], "Invalid index not in range 0 ..< \(dimensions[0])")
             
-            precondition(
-                offset < 16 + numberOfItems * width * height,
-                "Invalid index \(index) not in range 0 ..< \(numberOfItems)"
-            )
+            let size = dimensions.suffix(from: 1).reduce(1, *)
             
-            return IdxImage(
-                storage: UnsafeBufferPointer(
-                    start: storage.advanced(by: offset),
-                    count: width * height
-                ),
-                width: width,
-                height: height
-            )
+            return UnsafeBufferPointer(start: storage.advanced(by: index * size), count: size)
         }
     }
     
