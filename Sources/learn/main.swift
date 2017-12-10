@@ -25,9 +25,11 @@ let network = NeuralNetwork(
     hiddenLayerSize: 16,
     outputSize: 10
   )
-)    
+)
 
-let expectedOutput = [1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10].map { $0 / 10 }
+print(network.predict(input: Array(repeating: 0, count: 28 * 28)))
+
+/*let expectedOutput = [1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10].map { $0 / 10 }
 
 let trainingSet = (0 ..< f.dimensions[0]).map {
     (data: f[$0].map({ Double($0) / 255 }), expectedOutput: expectedOutput)
@@ -37,4 +39,4 @@ network.train(withSet: trainingSet)
 
 f[0].map({ Double($0) / 255 }).withUnsafeBufferPointer {
     print(network.predict(input: $0))
-}
+}*/

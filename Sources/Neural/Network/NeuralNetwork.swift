@@ -33,7 +33,7 @@ public class NeuralNetwork {
     
 }
 
-public extension NeuralNetwork {
+/*public extension NeuralNetwork {
     
     func train<TS: Collection, C1: UnsafeBufferConvertible, C2: UnsafeBufferConvertible>(withSet trainingSet: TS)
         where TS.Element == (data: C1, expectedOutput: C2), C1.Element == Double, C2.Element == Double {
@@ -73,27 +73,26 @@ public extension NeuralNetwork {
             .reduce(into: 0, +=)
     }
     
-}
+}*/
 
 public extension NeuralNetwork {
     
-    func predict(input: UnsafeBufferPointer<Double>) -> UnsafeBufferPointer<Double> {
+    func predict(input: [Double]) -> [Double] {
         precondition(
             input.count == networkInfo.inputSize,
             "Wrong input size, expected \(networkInfo.inputSize), got \(input.count)"
         )
 
-        for l in 0 ... networkInfo.hiddenLayers {
-            predictLayer(atIndex: l, input: input)
-        }
+        input.enumerated().forEach { neurons[$0] = $1 }
+        (0 ... networkInfo.hiddenLayers).forEach(predictLayer)
         
-        return UnsafeBufferPointer(rebasing: neurons.suffix(networkInfo.outputSize))
+        return Array(neurons.suffix(networkInfo.outputSize))
     }
     
-    private func predictLayer(atIndex layer: Int, input: UnsafeBufferPointer<Double>) {
-        precondition(layer >= 0 && layer <= networkInfo.hiddenLayers)
+    private func predictLayer(atIndex layer: Int) {
+        assert(layer >= 0 && layer <= networkInfo.hiddenLayers)
 
-        let a = layer == 0 ? input : self.input(forLayer: layer)
+        let a = input(forLayer: layer)
         
         let size = layer == networkInfo.hiddenLayers
             ? networkInfo.outputSize
@@ -101,26 +100,40 @@ public extension NeuralNetwork {
 
         for i in 0 ..< size {
             let w = weights(forLayer: layer, stage: i)
-            let b = biases[networkInfo.hiddenLayerSize * layer + i]
+            let b = bias(forLayer: layer, stage: i)
             
             neurons[networkInfo.hiddenLayerSize * layer + i] = squishify(w * a + b)
         }
     }
     
-    private func input(forLayer layer: Int) -> UnsafeBufferPointer<Double> {
-        precondition(layer >= 1 && layer <= networkInfo.hiddenLayers)
+}
+
+private extension NeuralNetwork {
+    
+    func input(forLayer layer: Int) -> UnsafeBufferPointer<Double> {
+        assert(layer >= 0 && layer <= networkInfo.hiddenLayers)
         
-        return UnsafeBufferPointer(
-            rebasing: neurons.slice(
-                from: networkInfo.hiddenLayerSize * layer.advanced(by: -1),
-                count: networkInfo.hiddenLayerSize
+        if layer == 0 {
+            return UnsafeBufferPointer(
+                rebasing: neurons.slice(
+                    from: 0,
+                    count: networkInfo.inputSize
+                )
             )
-        )        
+        } else {
+            return UnsafeBufferPointer(
+                rebasing: weights.slice(
+                    from: networkInfo.inputSize
+                        + networkInfo.hiddenLayerSize * layer.advanced(by: -1),
+                    count: networkInfo.hiddenLayerSize
+                )
+            )
+        }
     }
     
-    private func weights(forLayer layer: Int, stage: Int) -> UnsafeBufferPointer<Double> {
-        precondition(layer >= 0 && layer <= networkInfo.hiddenLayers)
-    
+    func weights(forLayer layer: Int, stage: Int) -> UnsafeBufferPointer<Double> {
+        assert(layer >= 0 && layer <= networkInfo.hiddenLayers)
+        
         if layer == 0 {
             return UnsafeBufferPointer(
                 rebasing: weights.slice(
@@ -140,9 +153,11 @@ public extension NeuralNetwork {
         }
     }
     
-}
+    func bias(forLayer layer: Int, stage: Int) -> Double {
+        assert(layer >= 0 && layer <= networkInfo.hiddenLayers)
 
-private extension NeuralNetwork {
+        return biases[networkInfo.hiddenLayerSize * layer + stage]
+    }
     
     func squishify(_ v: Double) -> Double {
         return 1 / (1 + exp(-v))

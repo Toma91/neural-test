@@ -21,7 +21,7 @@ public struct NetworkInfo {
     }
     
     public var neuronsSize: Int {
-        return hiddenLayerSize * hiddenLayers + outputSize
+        return inputSize + hiddenLayerSize * hiddenLayers + outputSize
     }
     
     public var weightsSize: Int {

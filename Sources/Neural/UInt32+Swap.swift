@@ -1,5 +1,5 @@
 //
-//  Integers+Swap.swift
+//  UInt32+Swap.swift
 //  Neural
 //
 //  Created by Andrea Tomarelli on 09/12/17.
