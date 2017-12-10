@@ -27,12 +27,14 @@ let network = NeuralNetwork(
   )
 )    
 
-let expectedOutput = OutputData([1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10].map({ $0 / 10 }))
+let expectedOutput = [1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10].map { $0 / 10 }
 
-let trainingSet = (0 ..< f.dimensions[0]).lazy.map {
-    (data: InputData(f[$0].lazy.map({ Double($0) / 255 })), expectedOutput: expectedOutput)
+let trainingSet = (0 ..< f.dimensions[0]).map {
+    (data: f[$0].map({ Double($0) / 255 }), expectedOutput: expectedOutput)
 }
 
 network.train(withSet: trainingSet)
-print(network.predict(input: InputData(f[0].lazy.map({ Double($0) / 255 }))))
 
+f[0].map({ Double($0) / 255 }).withUnsafeBufferPointer {
+    print(network.predict(input: $0))
+}

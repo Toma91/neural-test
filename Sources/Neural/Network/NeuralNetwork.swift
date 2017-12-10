@@ -35,7 +35,8 @@ public class NeuralNetwork {
 
 public extension NeuralNetwork {
     
-    func train<TS: Collection>(withSet trainingSet: TS) where TS.Element == (data: InputData, expectedOutput: OutputData) {
+    func train<TS: Collection, C1: UnsafeBufferConvertible, C2: UnsafeBufferConvertible>(withSet trainingSet: TS)
+        where TS.Element == (data: C1, expectedOutput: C2), C1.Element == Double, C2.Element == Double {
         for i in 0 ..< neurons.count {
             neurons[i] = Double(Int(arc4random()) % 1001 - 500) / 500
         }
@@ -54,9 +55,13 @@ public extension NeuralNetwork {
                 "Invalid training size (\(trainingInput.count), \(trainingOutput.count)), expected (\(networkInfo.inputSize), \(networkInfo.outputSize))"
             )
             
-            let output = predict(input: trainingInput)
-            let cost = self.cost(output: output, expected: trainingOutput)
-            print("cost", cost)
+            trainingInput.withUnsafeBufferPointer { i in
+                trainingOutput.withUnsafeBufferPointer { o in
+                    let output = predict(input: i)
+                    let cost = self.cost(output: output, expected: o)
+                    print("cost", cost)
+                }
+            }
         }
     }
     
@@ -72,7 +77,7 @@ public extension NeuralNetwork {
 
 public extension NeuralNetwork {
     
-    func predict(input: InputData) -> OutputData {
+    func predict(input: UnsafeBufferPointer<Double>) -> UnsafeBufferPointer<Double> {
         precondition(
             input.count == networkInfo.inputSize,
             "Wrong input size, expected \(networkInfo.inputSize), got \(input.count)"
@@ -82,10 +87,10 @@ public extension NeuralNetwork {
             predictLayer(atIndex: l, input: input)
         }
         
-        return OutputData(neurons.suffix(networkInfo.outputSize))
+        return UnsafeBufferPointer(rebasing: neurons.suffix(networkInfo.outputSize))
     }
     
-    private func predictLayer(atIndex layer: Int, input: InputData) {
+    private func predictLayer(atIndex layer: Int, input: UnsafeBufferPointer<Double>) {
         precondition(layer >= 0 && layer <= networkInfo.hiddenLayers)
 
         let a = layer == 0 ? input : self.input(forLayer: layer)
@@ -102,17 +107,15 @@ public extension NeuralNetwork {
         }
     }
     
-    private func input(forLayer layer: Int) -> InputData {
+    private func input(forLayer layer: Int) -> UnsafeBufferPointer<Double> {
         precondition(layer >= 1 && layer <= networkInfo.hiddenLayers)
         
-        return InputData(
-            UnsafeBufferPointer(
-                rebasing: neurons.slice(
-                    from: networkInfo.hiddenLayerSize * layer.advanced(by: -1),
-                    count: networkInfo.hiddenLayerSize
-                )
+        return UnsafeBufferPointer(
+            rebasing: neurons.slice(
+                from: networkInfo.hiddenLayerSize * layer.advanced(by: -1),
+                count: networkInfo.hiddenLayerSize
             )
-        )
+        )        
     }
     
     private func weights(forLayer layer: Int, stage: Int) -> UnsafeBufferPointer<Double> {
