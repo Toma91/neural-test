@@ -33,47 +33,53 @@ public class NeuralNetwork {
     
 }
 
-/*public extension NeuralNetwork {
+public extension NeuralNetwork {
     
-    func train<TS: Collection, C1: UnsafeBufferConvertible, C2: UnsafeBufferConvertible>(withSet trainingSet: TS)
-        where TS.Element == (data: C1, expectedOutput: C2), C1.Element == Double, C2.Element == Double {
+    typealias TrainingData = (data: [Double], expectedOutput: [Double])
+    
+    func train(withSet trainingSet: [TrainingData], batchSize: Int, eta: Double) {
         for i in 0 ..< neurons.count {
-            neurons[i] = Double(Int(arc4random()) % 1001 - 500) / 500
+            neurons[i] = Double(arc4random_uniform(UInt32.max)) / Double(UInt32.max)
         }
         
         for i in 0 ..< weights.count {
-            weights[i] = Double(Int(arc4random()) % 1001 - 500) / 500
+            weights[i] = Double(arc4random_uniform(UInt32.max)) / Double(UInt32.max)
         }
         
         for i in 0 ..< biases.count {
-            biases[i] = Double(Int(arc4random()) % 1001 - 500) / 500
+            biases[i] = Double(arc4random_uniform(UInt32.max)) / Double(UInt32.max)
         }
         
-        for (trainingInput, trainingOutput) in trainingSet {
-            precondition(
-                trainingInput.count == networkInfo.inputSize && trainingOutput.count == networkInfo.outputSize,
-                "Invalid training size (\(trainingInput.count), \(trainingOutput.count)), expected (\(networkInfo.inputSize), \(networkInfo.outputSize))"
-            )
-            
-            trainingInput.withUnsafeBufferPointer { i in
-                trainingOutput.withUnsafeBufferPointer { o in
-                    let output = predict(input: i)
-                    let cost = self.cost(output: output, expected: o)
-                    print("cost", cost)
-                }
-            }
+        let ts = trainingSet.shuffled()
+        
+        for i in stride(from: 0, to: ts.count, by: batchSize) {
+            let j = ts.index(i, offsetBy: batchSize, limitedBy: ts.endIndex) ?? ts.endIndex
+            miniBatchTrain(miniBatch: ts[i ..< j], eta: eta)
         }
     }
     
-    private func cost<O: Collection, EO: Collection>(output: O, expected: EO) -> Double
-        where O.Element == Double, EO.Element == Double {
+    private func miniBatchTrain(miniBatch: ArraySlice<TrainingData>, eta: Double) {
+        for (trainingData, expectedOutput) in miniBatch {
+            let predictedOutput = predict(input: trainingData)
             
-        return zip(output, expected)
-            .map { ($0 - $1) * ($0 - $1) }
-            .reduce(into: 0, +=)
+            let deZ_deW_0 = input(forLayer: networkInfo.hiddenLayers)[0]
+            let deA_deZ_0 = weights(forLayer: networkInfo.hiddenLayers, stage: 0) * input(forLayer: networkInfo.hiddenLayers)
+                + bias(forLayer: networkInfo.hiddenLayers, stage: 0)
+            let deC_deA_0 = 2 * zip(predictedOutput, expectedOutput).map({ ($0 - $1) * ($0 - $1) }).reduce(0, +)
+            let deC_deW_0 = deZ_deW_0 * deA_deZ_0 * deC_deA_0
+            
+            print(deC_deW_0)
+            print()
+        }
     }
     
-}*/
+    /*private func cost(output: [Double], expected: [Double]) -> Double {
+        return zip(output, expected)
+            .map { ($0 - $1) * ($0 - $1) }
+            .reduce(0, +)
+    }*/
+    
+}
 
 public extension NeuralNetwork {
     
@@ -163,4 +169,8 @@ private extension NeuralNetwork {
         return 1 / (1 + exp(-v))
     }
     
+    func squishifyDerivative(_ v: Double) -> Double {
+        return exp(v) / ((1 + exp(v)) * (1 + exp(v)))
+    }
+
 }
