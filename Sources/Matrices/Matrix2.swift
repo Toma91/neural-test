@@ -7,50 +7,98 @@
 
 public struct Martix2<T> {
     
-    public typealias Dimensions = (Int, Int)
+    public typealias Dimensions = (nRows: Int, nColumns: Int)
     
     
-    private let storage:    MatrixStorage<T>
-    
-    private let offset:     Int
+    private var storage:    Storage<T>
     
     public let dimensions:  Dimensions
     
     
-    public init(dimensions: Dimensions) {
-        self.storage    = MatrixStorage(size: dimensions.0 * dimensions.1)
-        self.offset     = 0
-        self.dimensions = dimensions
-    }
-    
-    init(storage: MatrixStorage<T>, offset: Int, dimensions: Dimensions) {
+    init(storage: Storage<T>, dimensions: Dimensions) {
         self.storage    = storage
-        self.offset     = offset
         self.dimensions = dimensions
     }
 
 }
 
 public extension Martix2 {
+    
+    init(dimensions: Dimensions) {
+        self.init(
+            storage: Storage(size: dimensions.0 * dimensions.1),
+            dimensions: dimensions
+        )
+    }
+    
+}
 
-    subscript(_ i0: Int) -> Vector<T> {
+public extension Martix2 {
+
+    subscript(row row: Int) -> RowVector<T> {
         get {
-            precondition(i0 >= 0 && i0 < dimensions.0)
+            precondition(row >= 0 && row < dimensions.nRows)
             
-            return Vector(
+            return RowVector(
                 storage: storage,
-                offset: offset + i0 * dimensions.1,
-                length: dimensions.1
+                offset: row * dimensions.nColumns,
+                step: 1,
+                length: dimensions.nColumns
             )
+        }
+        set {
+            precondition(row >= 0 && row < dimensions.nRows)
+            
+            if !isKnownUniquelyReferenced(&storage) {
+                storage = Storage(copying: storage)
+            }
+            
+            for (column, i) in stride(from: row, to: storage.count, by: 1).enumerated() {
+                storage[i] = newValue[column]
+            }
         }
     }
     
-    subscript(_ i0: Int, _ i1: Int) -> T {
+    subscript(column column: Int) -> ColumnVector<T> {
         get {
-            precondition(i0 >= 0 && i0 < dimensions.0)
-            precondition(i1 >= 0 && i1 < dimensions.1)
+            precondition(column >= 0 && column < dimensions.nColumns)
             
-            return storage[offset + i0 * dimensions.1 + i1]
+            return ColumnVector(
+                storage: storage,
+                offset: column,
+                step: dimensions.nColumns,
+                length: dimensions.nRows
+            )
+        }
+        set {
+            precondition(column >= 0 && column < dimensions.nColumns)
+
+            if !isKnownUniquelyReferenced(&storage) {
+                storage = Storage(copying: storage)
+            }
+            
+            for (row, i) in stride(from: column, to: storage.count, by: dimensions.nColumns).enumerated() {
+                storage[i] = newValue[row]
+            }
+        }
+    }
+    
+    subscript(row row: Int, column column: Int) -> T {
+        get {
+            precondition(row >= 0 && row < dimensions.nRows)
+            precondition(column >= 0 && column < dimensions.nColumns)
+            
+            return storage[row * dimensions.nColumns + column]
+        }
+        set {
+            precondition(row >= 0 && row < dimensions.nRows)
+            precondition(column >= 0 && column < dimensions.nColumns)
+         
+            if !isKnownUniquelyReferenced(&storage) {
+                storage = Storage(copying: storage)
+            }
+            
+            storage[row * dimensions.nColumns + column] = newValue
         }
     }
     

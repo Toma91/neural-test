@@ -18,11 +18,18 @@ public class NeuralNetwork {
     private let biases:     UnsafeMutableBufferPointer<Double>
 
     
+    private let _weights:   [UnsafeMutableBufferPointer<Double>]
+    
+    
     public init(networkInfo: NetworkInfo) {
         self.networkInfo    = networkInfo
         self.neurons        = UnsafeMutableBufferPointer.allocate(capacity: networkInfo.neuronsSize)
         self.weights        = UnsafeMutableBufferPointer.allocate(capacity: networkInfo.weightsSize)
         self.biases         = UnsafeMutableBufferPointer.allocate(capacity: networkInfo.biasesSize)
+    
+        self._weights = Array(repeating: UnsafeMutableBufferPointer.allocate(capacity: 1), count: 3)
+        
+        self._weights[0][0] = Double("a2") ?? 0
     }
     
     deinit {
