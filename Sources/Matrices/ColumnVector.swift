@@ -5,7 +5,7 @@
 //  Created by Andrea Tomarelli on 12/12/17.
 //
 
-public struct ColumnVector<T> {
+public struct ColumnVector<T: Numeric> {
     
     private var storage:    Storage<T>
     

@@ -5,7 +5,7 @@
 //  Created by Andrea Tomarelli on 12/12/17.
 //
 
-public struct Martix2<T> {
+public struct Matrix2<T: Numeric> {
     
     public typealias Dimensions = (nRows: Int, nColumns: Int)
     
@@ -22,7 +22,7 @@ public struct Martix2<T> {
 
 }
 
-public extension Martix2 {
+public extension Matrix2 {
     
     init(dimensions: Dimensions) {
         self.init(
@@ -33,7 +33,7 @@ public extension Martix2 {
     
 }
 
-public extension Martix2 {
+public extension Matrix2 {
 
     subscript(row row: Int) -> RowVector<T> {
         get {
@@ -53,7 +53,7 @@ public extension Martix2 {
                 storage = Storage(copying: storage)
             }
             
-            for (column, i) in stride(from: row, to: storage.count, by: 1).enumerated() {
+            for (column, i) in stride(from: row, to: dimensions.nColumns, by: 1).enumerated() {
                 storage[i] = newValue[column]
             }
         }

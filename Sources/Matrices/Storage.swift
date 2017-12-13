@@ -13,6 +13,8 @@ final class Storage<T> {
     
     
     init(owning pointer: UnsafeMutablePointer<T>, count: Int) {
+        print("init")
+        
         self.buffer = UnsafeMutableBufferPointer(start: pointer, count: count)
     }
     

@@ -5,7 +5,7 @@
 //  Created by Andrea Tomarelli on 12/12/17.
 //
 
-public struct RowVector<T> {
+public struct RowVector<T: Numeric> {
     
     private var storage:    Storage<T>
     
@@ -25,6 +25,16 @@ public struct RowVector<T> {
         self.offset     = offset
         self.step       = step
         self.length     = length
+    }
+    
+}
+
+extension RowVector {
+
+    func assign(from multiplication: RowMultiplication<T>) {
+        for index in 0 ..< length {
+            storage[offset + step * index] = multiplication[index]
+        }
     }
     
 }

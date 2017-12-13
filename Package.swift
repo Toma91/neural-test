@@ -24,5 +24,9 @@ let package = Package(
             name: "learn",
             dependencies: ["Neural"]
         ),
+        .testTarget(
+            name: "MatricesTests",
+            dependencies: ["Matrices"]
+        ),
     ]
 )
