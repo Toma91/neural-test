@@ -1,11 +1,11 @@
 //
-//  Matrix2.swift
+//  Matrix.swift
 //  learnPackageDescription
 //
 //  Created by Andrea Tomarelli on 12/12/17.
 //
 
-public struct Matrix2<T: Numeric> {
+public struct Matrix<T: Numeric> {
     
     public typealias Dimensions = (nRows: Int, nColumns: Int)
     
@@ -22,7 +22,7 @@ public struct Matrix2<T: Numeric> {
 
 }
 
-public extension Matrix2 {
+public extension Matrix {
     
     init(dimensions: Dimensions) {
         self.init(
@@ -33,7 +33,33 @@ public extension Matrix2 {
     
 }
 
-public extension Matrix2 {
+public extension Matrix {
+
+    mutating func set(row: Int, to vectorProducer: RowVectorExpression<T>) {
+        precondition(vectorProducer.length == dimensions.nColumns)
+     
+        if !isKnownUniquelyReferenced(&storage) {
+            storage = Storage(copying: storage)
+        }
+        
+        for i in 0 ..< vectorProducer.length {
+            storage[row * dimensions.nColumns + i] = vectorProducer[i]
+        }
+    }
+    
+}
+
+func test() {
+    let a = RowVector<Int>(length: 5)
+    let b = Matrix<Int>(dimensions: (5, 4))
+    
+    var m = Matrix<Int>(dimensions: (3, 4))
+    m[row: 0] = a * b
+    
+//    let t = m[row: 0]
+}
+
+public extension Matrix {
 
     subscript(row row: Int) -> RowVector<T> {
         get {
@@ -47,8 +73,18 @@ public extension Matrix2 {
             )
         }
         set {
+            self[row: row] = RowVectorExpression(vector: newValue)
+        }
+    }
+    
+    subscript(row row: Int) -> RowVectorExpression<T> {
+        get {
+            return RowVectorExpression(vector: self[row: row])
+        }
+        set {
             precondition(row >= 0 && row < dimensions.nRows)
-            
+            precondition(newValue.length == dimensions.nColumns)
+
             if !isKnownUniquelyReferenced(&storage) {
                 storage = Storage(copying: storage)
             }
@@ -58,6 +94,9 @@ public extension Matrix2 {
             }
         }
     }
+}
+
+public extension Matrix {
     
     subscript(column column: Int) -> ColumnVector<T> {
         get {

@@ -29,7 +29,7 @@ public struct RowVector<T: Numeric> {
     
 }
 
-extension RowVector {
+/*extension RowVector {
 
     func assign(from multiplication: RowMultiplication<T>) {
         for index in 0 ..< length {
@@ -37,7 +37,7 @@ extension RowVector {
         }
     }
     
-}
+}*/
 
 public extension RowVector {
     
