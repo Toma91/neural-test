@@ -9,41 +9,31 @@ final class Storage<T> {
     
     private let buffer: UnsafeMutableBufferPointer<T>
     
-    var count: Int { return buffer.count }
     
-    
-    init(owning pointer: UnsafeMutablePointer<T>, count: Int) {
-        print("init")
-        
-        self.buffer = UnsafeMutableBufferPointer(start: pointer, count: count)
-    }
-    
-    deinit {
-        buffer.baseAddress!.deallocate(capacity: buffer.count)
+    init(size: Int) {
+        self.buffer = UnsafeMutableBufferPointer(
+            start: UnsafeMutablePointer.allocate(capacity: size),
+            count: size
+        )
     }
     
 }
 
 extension Storage {
     
-    convenience init(size: Int) {
-        self.init(owning: UnsafeMutablePointer.allocate(capacity: size), count: size)
-    }
-    
-    convenience init(copying storage: Storage, from offset: Int, count: Int) {
-        precondition(offset >= 0 && offset < storage.count, "Invalid offset")
-        precondition(count > 0 && offset + count <= storage.count, "Invalid offset + count")
-        
-        self.init(size: storage.count)
+    convenience init(copying storage: Storage<T>) {
+        self.init(size: storage.buffer.count)
         
         buffer.baseAddress!.assign(
-            from: storage.buffer.baseAddress!.advanced(by: offset),
-            count: count
+            from: storage.buffer.baseAddress!,
+            count: storage.buffer.count
         )
     }
     
-    convenience init(copying storage: Storage) {
-        self.init(copying: storage, from: 0, count: storage.count)
+    convenience init(elements: [T]) {
+        self.init(size: elements.count)
+        
+        buffer.baseAddress!.assign(from: elements, count: elements.count)
     }
     
 }

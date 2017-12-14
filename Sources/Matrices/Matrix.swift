@@ -7,138 +7,95 @@
 
 public struct Matrix<T: Numeric> {
     
-    public typealias Dimensions = (nRows: Int, nColumns: Int)
+    private let storage:    Storage<T>
+    
+    public let nRows:       Int
+    
+    public let nColumns:    Int
     
     
-    private var storage:    Storage<T>
-    
-    public let dimensions:  Dimensions
-    
-    
-    init(storage: Storage<T>, dimensions: Dimensions) {
-        self.storage    = storage
-        self.dimensions = dimensions
-    }
-
-}
-
-public extension Matrix {
-    
-    init(dimensions: Dimensions) {
-        self.init(
-            storage: Storage(size: dimensions.0 * dimensions.1),
-            dimensions: dimensions
-        )
-    }
-    
-}
-
-public extension Matrix {
-
-    mutating func set(row: Int, to vectorProducer: RowVectorExpression<T>) {
-        precondition(vectorProducer.length == dimensions.nColumns)
-     
-        if !isKnownUniquelyReferenced(&storage) {
-            storage = Storage(copying: storage)
-        }
+    public init(nRows: Int, nColumns: Int, elements: T...) {
+        precondition(elements.isEmpty || elements.count == nRows * nColumns)
         
-        for i in 0 ..< vectorProducer.length {
-            storage[row * dimensions.nColumns + i] = vectorProducer[i]
+        self.storage    = Storage(size: nRows * nColumns)
+        self.nRows      = nRows
+        self.nColumns   = nColumns
+
+        for (i, e) in elements.enumerated() {
+            storage[i] = e
         }
     }
     
-}
-
-func test() {
-    let a = RowVector<Int>(length: 5)
-    let b = Matrix<Int>(dimensions: (5, 4))
+    public init(row elements: T...) {
+        self.storage    = Storage(elements: elements)
+        self.nRows      = 1
+        self.nColumns   = elements.count
+    }
     
-    var m = Matrix<Int>(dimensions: (3, 4))
-    m[row: 0] = a * b
+    public init(column elements: T...) {
+        self.storage    = Storage(elements: elements)
+        self.nRows      = elements.count
+        self.nColumns   = 1
+    }
     
-//    let t = m[row: 0]
 }
 
 public extension Matrix {
-
-    subscript(row row: Int) -> RowVector<T> {
-        get {
-            precondition(row >= 0 && row < dimensions.nRows)
-            
-            return RowVector(
-                storage: storage,
-                offset: row * dimensions.nColumns,
-                step: 1,
-                length: dimensions.nColumns
-            )
-        }
-        set {
-            self[row: row] = RowVectorExpression(vector: newValue)
-        }
-    }
-    
-    subscript(row row: Int) -> RowVectorExpression<T> {
-        get {
-            return RowVectorExpression(vector: self[row: row])
-        }
-        set {
-            precondition(row >= 0 && row < dimensions.nRows)
-            precondition(newValue.length == dimensions.nColumns)
-
-            if !isKnownUniquelyReferenced(&storage) {
-                storage = Storage(copying: storage)
-            }
-            
-            for (column, i) in stride(from: row, to: dimensions.nColumns, by: 1).enumerated() {
-                storage[i] = newValue[column]
-            }
-        }
-    }
-}
-
-public extension Matrix {
-    
-    subscript(column column: Int) -> ColumnVector<T> {
-        get {
-            precondition(column >= 0 && column < dimensions.nColumns)
-            
-            return ColumnVector(
-                storage: storage,
-                offset: column,
-                step: dimensions.nColumns,
-                length: dimensions.nRows
-            )
-        }
-        set {
-            precondition(column >= 0 && column < dimensions.nColumns)
-
-            if !isKnownUniquelyReferenced(&storage) {
-                storage = Storage(copying: storage)
-            }
-            
-            for (row, i) in stride(from: column, to: storage.count, by: dimensions.nColumns).enumerated() {
-                storage[i] = newValue[row]
-            }
-        }
-    }
     
     subscript(row row: Int, column column: Int) -> T {
         get {
-            precondition(row >= 0 && row < dimensions.nRows)
-            precondition(column >= 0 && column < dimensions.nColumns)
-            
-            return storage[row * dimensions.nColumns + column]
+            precondition(row >= 0 && row < nRows)
+            precondition(column >= 0 && column < nColumns)
+
+            return storage[row * nColumns + column]
         }
         set {
-            precondition(row >= 0 && row < dimensions.nRows)
-            precondition(column >= 0 && column < dimensions.nColumns)
-         
-            if !isKnownUniquelyReferenced(&storage) {
-                storage = Storage(copying: storage)
-            }
+            precondition(row >= 0 && row < nRows)
+            precondition(column >= 0 && column < nColumns)
             
-            storage[row * dimensions.nColumns + column] = newValue
+            storage[row * nColumns + column] = newValue
         }
     }
     
 }
+
+public extension Matrix {
+    
+    subscript(row row: Int) -> MatrixSliceRow<T> {
+        get {
+            precondition(row >= 0 && row < nRows)
+            
+            return MatrixSliceRow(matrix: self, row: row)
+        }
+        set {
+            precondition(row >= 0 && row < nRows)
+            precondition(newValue.length == nColumns)
+            
+            for i in 0 ..< nColumns {
+                storage[row * nColumns + i] = newValue[i]
+            }
+        }
+    }
+    
+}
+
+public extension Matrix {
+    
+    subscript(column column: Int) -> MatrixSliceColumn<T> {
+        get {
+            precondition(column >= 0 && column < nColumns)
+            
+            return MatrixSliceColumn(matrix: self, column: column)
+        }
+        set {
+            precondition(column >= 0 && column < nColumns)
+            precondition(newValue.length == nRows)
+            
+            for i in 0 ..< nRows {
+                storage[i * nColumns + column] = newValue[i]
+            }
+        }
+    }
+    
+}
+
