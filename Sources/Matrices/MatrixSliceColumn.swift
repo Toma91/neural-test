@@ -11,7 +11,7 @@ public struct MatrixSliceColumn<T: Numeric> {
     
     private enum Kind {
         
-        case col(Int)
+        case column(Int)
         case mul(ColumnVector<T>)
         
     }
@@ -29,7 +29,7 @@ public struct MatrixSliceColumn<T: Numeric> {
         precondition(column >= 0 && column < matrix.nColumns)
         
         self.matrix = matrix
-        self.kind = .col(column)
+        self.kind = .column(column)
     }
     
     
@@ -50,7 +50,7 @@ extension MatrixSliceColumn {
             
             switch kind {
                 
-            case .col(let c):
+            case .column(let c):
                 return matrix[row: index, column: c]
 
             case .mul(let v):

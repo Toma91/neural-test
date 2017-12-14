@@ -17,25 +17,13 @@ public struct Matrix<T: Numeric> {
     public init(nRows: Int, nColumns: Int, elements: T...) {
         precondition(elements.isEmpty || elements.count == nRows * nColumns)
         
-        self.storage    = Storage(size: nRows * nColumns)
+        let storage = elements.isEmpty
+            ? Storage(size: nRows * nColumns)
+            : Storage(elements: elements)
+        
+        self.storage    = storage
         self.nRows      = nRows
         self.nColumns   = nColumns
-
-        for (i, e) in elements.enumerated() {
-            storage[i] = e
-        }
-    }
-    
-    public init(row elements: T...) {
-        self.storage    = Storage(elements: elements)
-        self.nRows      = 1
-        self.nColumns   = elements.count
-    }
-    
-    public init(column elements: T...) {
-        self.storage    = Storage(elements: elements)
-        self.nRows      = elements.count
-        self.nColumns   = 1
     }
     
 }

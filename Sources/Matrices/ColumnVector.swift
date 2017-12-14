@@ -2,39 +2,34 @@
 //  ColumnVector.swift
 //  Matrices
 //
-//  Created by Andrea Tomarelli on 12/12/17.
+//  Created by Andrea Tomarelli on 14/12/17.
 //
 
 public struct ColumnVector<T: Numeric> {
-    
-    private var storage:    Storage<T>
-    
-    private var offset:     Int
-    
-    private var step:       Int
-    
+ 
+    private let storage:    Storage<T>
+
     public let length:      Int
     
-   
-    init(storage: Storage<T>, offset: Int, step: Int, length: Int) {
-        precondition(offset >= 0 && offset < storage.count)
-        precondition(step > 0)
-        precondition(length > 0 && offset + length <= storage.count)
-
-        self.storage    = storage
-        self.offset     = offset
-        self.step       = step
+    
+    public init(length: Int) {
+        self.storage    = Storage(size: length)
         self.length     = length
+    }
+    
+    public init(elements: [T]) {
+        self.storage    = Storage(elements: elements)
+        self.length     = elements.count
     }
     
 }
 
 public extension ColumnVector {
     
-    init(length: Int) {
-        self.init(storage: Storage(size: length), offset: 0, step: 1, length: length)
+    init(_ elements: T...) {
+        self.init(elements: elements)
     }
-    
+
 }
 
 public extension ColumnVector {
@@ -43,17 +38,12 @@ public extension ColumnVector {
         get {
             precondition(index >= 0 && index < length)
             
-            return storage[offset + step * index]
+            return storage[index]
         }
         set {
-            assert(index >= 0 && index < length)
-
-            if !isKnownUniquelyReferenced(&storage) {
-                storage = Storage(copying: storage, from: offset, count: length)
-                offset = 0
-            }
+            precondition(index >= 0 && index < length)
             
-            storage[offset + step * index] = newValue
+            storage[index] = newValue
         }
     }
     
