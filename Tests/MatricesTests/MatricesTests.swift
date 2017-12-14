@@ -9,7 +9,7 @@ import XCTest
 @testable import Matrices
 
 class MatricesTests: XCTestCase {
-    
+    /*
     private var m = Matrix2<Int>(dimensions: (2, 3))
     
     override func setUp() {
@@ -117,6 +117,55 @@ class MatricesTests: XCTestCase {
         XCTAssertEqual(m[row: 0, column: 2], 42)
 
         print("end")
+    }*/
+    
+    func testA() {
+        let m = Matrix(
+            nRows: 3, nColumns: 4,
+            elements:   01, 02, 03, 04,
+                        05, 06, 07, 08,
+                        09, 10, 11, 12
+        )
+        /*
+        XCTAssertEqual(m[row: 0, column: 0], 01)
+        XCTAssertEqual(m[row: 0, column: 1], 02)
+        XCTAssertEqual(m[row: 0, column: 2], 03)
+        XCTAssertEqual(m[row: 0, column: 3], 04)
+        XCTAssertEqual(m[row: 1, column: 0], 05)
+        XCTAssertEqual(m[row: 1, column: 1], 06)
+        XCTAssertEqual(m[row: 1, column: 2], 07)
+        XCTAssertEqual(m[row: 1, column: 3], 08)
+        XCTAssertEqual(m[row: 2, column: 0], 09)
+        XCTAssertEqual(m[row: 2, column: 1], 10)
+        XCTAssertEqual(m[row: 2, column: 2], 11)
+        XCTAssertEqual(m[row: 2, column: 3], 12)
+
+        XCTAssertEqual(m[row: 0][row: 0, column: 0], 01)
+        XCTAssertEqual(m[row: 0][row: 0, column: 1], 02)
+        XCTAssertEqual(m[row: 0][row: 0, column: 2], 03)
+        XCTAssertEqual(m[row: 0][row: 0, column: 3], 04)
+        XCTAssertEqual(m[row: 1][row: 0, column: 0], 05)
+        XCTAssertEqual(m[row: 1][row: 0, column: 1], 06)
+        XCTAssertEqual(m[row: 1][row: 0, column: 2], 07)
+        XCTAssertEqual(m[row: 1][row: 0, column: 3], 08)
+        XCTAssertEqual(m[row: 2][row: 0, column: 0], 09)
+        XCTAssertEqual(m[row: 2][row: 0, column: 1], 10)
+        XCTAssertEqual(m[row: 2][row: 0, column: 2], 11)
+        XCTAssertEqual(m[row: 2][row: 0, column: 3], 12)
+*/
+        XCTAssertEqual(m[column: 0][row: 0, column: 0], 01)
+        XCTAssertEqual(m[column: 1][row: 0, column: 0], 02)
+        XCTAssertEqual(m[column: 2][row: 0, column: 0], 03)
+        XCTAssertEqual(m[column: 3][row: 0, column: 0], 04)
+        XCTAssertEqual(m[column: 0][row: 1, column: 0], 05)
+        XCTAssertEqual(m[column: 1][row: 1, column: 0], 06)
+        XCTAssertEqual(m[column: 2][row: 1, column: 0], 07)
+        XCTAssertEqual(m[column: 3][row: 1, column: 0], 08)
+        XCTAssertEqual(m[column: 0][row: 2, column: 0], 09)
+        XCTAssertEqual(m[column: 1][row: 2, column: 0], 10)
+        XCTAssertEqual(m[column: 2][row: 2, column: 0], 11)
+        XCTAssertEqual(m[column: 3][row: 2, column: 0], 12)
+
     }
 
 }
