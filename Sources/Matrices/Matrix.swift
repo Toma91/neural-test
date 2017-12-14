@@ -7,7 +7,7 @@
 
 public struct Matrix<T: Numeric> {
     
-    private let storage:    Storage<T>
+    private var storage:    Storage<T>
     
     public let nRows:       Int
     
@@ -41,6 +41,10 @@ public extension Matrix {
             precondition(row >= 0 && row < nRows)
             precondition(column >= 0 && column < nColumns)
             
+            if !isKnownUniquelyReferenced(&storage) {
+                storage = Storage(copying: storage)
+            }
+            
             storage[row * nColumns + column] = newValue
         }
     }
@@ -58,6 +62,10 @@ public extension Matrix {
         set {
             precondition(row >= 0 && row < nRows)
             precondition(newValue.length == nColumns)
+            
+            if !isKnownUniquelyReferenced(&storage) {
+                storage = Storage(copying: storage)
+            }
             
             for i in 0 ..< nColumns {
                 storage[row * nColumns + i] = newValue[i]
@@ -78,6 +86,10 @@ public extension Matrix {
         set {
             precondition(column >= 0 && column < nColumns)
             precondition(newValue.length == nRows)
+            
+            if !isKnownUniquelyReferenced(&storage) {
+                storage = Storage(copying: storage)
+            }
             
             for i in 0 ..< nRows {
                 storage[i * nColumns + column] = newValue[i]
