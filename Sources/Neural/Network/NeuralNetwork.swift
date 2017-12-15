@@ -94,9 +94,11 @@ public extension NeuralNetwork {
     private func predictLayer(atIndex layer: Int) {
         assert(layer >= 0 && layer <= networkInfo.hiddenLayers)
 
-        for i in 0 ..< neurons[layer + 1].length {
+        neurons[layer + 1] <~ squishify(weights[layer] * neurons[layer] + biases[layer])
+
+        /*for i in 0 ..< neurons[layer + 1].length {
             neurons[layer + 1][i] = squishify(weights[layer][row: i] * neurons[layer] + biases[layer][i])
-        }
+        }*/
         
         
         
@@ -146,8 +148,9 @@ private extension NeuralNetwork {
         return biases[networkInfo.hiddenLayerSize * layer + stage]
     }
 */
-    func squishify(_ v: Double) -> Double {
-        return 1 / (1 + exp(-v))
+    func squishify(_ v: MatrixSliceColumn<Double>) -> MatrixSliceColumn<Double> {
+        fatalError()
+        //return 1 / (1 + exp(-v))
     }
     
     func squishifyDerivative(_ v: Double) -> Double {

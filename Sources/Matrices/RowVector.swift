@@ -7,7 +7,7 @@
 
 public struct RowVector<T: Numeric> {
  
-    private let storage:    Storage<T>
+    private var storage:    Storage<T>
 
     public let length:      Int
     
@@ -43,6 +43,10 @@ public extension RowVector {
         set {
             precondition(index >= 0 && index < length)
             
+            if !isKnownUniquelyReferenced(&storage) {
+                storage = Storage(copying: storage)
+            }
+
             storage[index] = newValue
         }
     }
