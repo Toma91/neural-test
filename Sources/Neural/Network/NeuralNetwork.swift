@@ -87,7 +87,7 @@ public extension NeuralNetwork {
         input.enumerated().forEach { neurons[0][$0] = $1 }
         (0 ... networkInfo.hiddenLayers).forEach(predictLayer)
 
-        fatalError()
+        exit(0)
         //return Array(neurons.suffix(networkInfo.outputSize))
     }
     
@@ -148,9 +148,8 @@ private extension NeuralNetwork {
         return biases[networkInfo.hiddenLayerSize * layer + stage]
     }
 */
-    func squishify(_ v: MatrixSliceColumn<Double>) -> MatrixSliceColumn<Double> {
-        fatalError()
-        //return 1 / (1 + exp(-v))
+    func squishify<V: ColumnVectorType>(_ v: V) -> ColumnMap<Double> where V.T == Double {
+        return ColumnMap(vector: v) { 1 / (1 + exp(-$0)) }
     }
     
     func squishifyDerivative(_ v: Double) -> Double {
