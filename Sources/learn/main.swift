@@ -33,7 +33,7 @@ let trainingSet = (0 ..< f.dimensions[0]).map {
     (data: f[$0].map({ Double($0) / 255 }), expectedOutput: expectedOutput)
 }
 
-network.train(withSet: trainingSet, batchSize: 1000, eta: 1)
+//network.train(withSet: trainingSet, batchSize: 1000, eta: 1)
 print(network.predict(input: f[0].map({ Double($0) / 255 })))
 
 
