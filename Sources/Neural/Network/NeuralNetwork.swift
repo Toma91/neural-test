@@ -14,9 +14,9 @@ public class NeuralNetwork {
 
     private var neurons:    [ColumnVector<Double>]
     
-    private let weights:    [Matrix<Double>]
+    private var weights:    [Matrix<Double>]
 
-    private let biases:     [ColumnVector<Double>]
+    private var biases:     [ColumnVector<Double>]
     
     
     public init(networkInfo: NetworkInfo) {
@@ -40,20 +40,39 @@ public class NeuralNetwork {
     
 }
 
-/*public extension NeuralNetwork {
-    
-    typealias TrainingData = (data: [Double], expectedOutput: [Double])
-    
-    func train(withSet trainingSet: [TrainingData], batchSize: Int, eta: Double) {
-        let ts = trainingSet.shuffled()
+public extension NeuralNetwork {
         
-        for i in stride(from: 0, to: ts.count, by: batchSize) {
-            let j = ts.index(i, offsetBy: batchSize, limitedBy: ts.endIndex) ?? ts.endIndex
-            miniBatchTrain(miniBatch: ts[i ..< j], eta: eta)
+    func train<TS: TrainingSet>(withSet trainingSet: TS, batchSize: Int, eta: Double) {
+        trainingSet.shuffle()
+        
+        for i in 0 ..< trainingSet.length / batchSize {
+            miniBatchTrain(miniBatch: trainingSet.batch(ofSize: batchSize, atOffset: i), eta: eta)
         }
     }
-    
-    private func miniBatchTrain(miniBatch: ArraySlice<TrainingData>, eta: Double) {
+
+    private func miniBatchTrain<C: Collection>(miniBatch: C, eta: Double) where C.Element == TrainingSet.TrainingData {
+        for i in 0 ..< neurons.count {
+            for j in 0 ..< neurons[i].length {
+                neurons[i][j] = Double(arc4random()) / Double(UInt32.max)
+            }
+        }
+        
+        for i in 0 ..< biases.count {
+            for j in 0 ..< biases[i].length {
+                biases[i][j] = Double(arc4random()) / Double(UInt32.max)
+            }
+        }
+        
+        for i in 0 ..< weights.count {
+            for j in 0 ..< weights[i].nRows {
+                for k in 0 ..< weights[i].nColumns {
+                    weights[i][row: j, column: k] = Double(arc4random()) / Double(UInt32.max)
+                }
+            }
+        }
+    }
+ 
+    /*private func miniBatchTrain(miniBatch: ArraySlice<TrainingData>, eta: Double) {
         for (trainingData, expectedOutput) in miniBatch {
             let predictedOutput = predict(input: trainingData)
             
@@ -66,7 +85,7 @@ public class NeuralNetwork {
             print(deC_deW_0)
             print()
         }
-    }
+    }*/
     
     /*private func cost(output: [Double], expected: [Double]) -> Double {
         return zip(output, expected)
@@ -74,7 +93,7 @@ public class NeuralNetwork {
             .reduce(0, +)
     }*/
     
-}*/
+}
 
 public extension NeuralNetwork {
     
@@ -87,68 +106,20 @@ public extension NeuralNetwork {
         input.enumerated().forEach { neurons[0][$0] = $1 }
         (0 ... networkInfo.hiddenLayers).forEach(predictLayer)
 
-        exit(0)
-        //return Array(neurons.suffix(networkInfo.outputSize))
+        return Array(vector: neurons.last!)
     }
     
     private func predictLayer(atIndex layer: Int) {
         assert(layer >= 0 && layer <= networkInfo.hiddenLayers)
 
-        neurons[layer + 1] <~ squishify(weights[layer] * neurons[layer] + biases[layer])
-
-        /*for i in 0 ..< neurons[layer + 1].length {
-            neurons[layer + 1][i] = squishify(weights[layer][row: i] * neurons[layer] + biases[layer][i])
-        }*/
-        
-        
-        
-        /*let a = input(forLayer: layer)
-        
-        let size = layer == networkInfo.hiddenLayers
-            ? networkInfo.outputSize
-            : networkInfo.hiddenLayerSize
-
-        for i in 0 ..< size {
-            let w = weights(forLayer: layer, stage: i)
-            let b = bias(forLayer: layer, stage: i)
-            
-            neurons[networkInfo.hiddenLayerSize * layer + i] = squishify(w * a + b)
-        }*/
+        neurons[layer + 1] <~ σ(weights[layer] * neurons[layer] + biases[layer])
     }
     
 }
 
 private extension NeuralNetwork {
-/*
-    func weights(forLayer layer: Int, stage: Int) -> UnsafeBufferPointer<Double> {
-        assert(layer >= 0 && layer <= networkInfo.hiddenLayers)
-        
-        if layer == 0 {
-            return UnsafeBufferPointer(
-                rebasing: weights.slice(
-                    from: networkInfo.inputSize * stage,
-                    count: networkInfo.inputSize
-                )
-            )
-        } else {
-            return UnsafeBufferPointer(
-                rebasing: weights.slice(
-                    from: networkInfo.inputSize * networkInfo.hiddenLayerSize
-                        + networkInfo.hiddenLayerSize * (networkInfo.hiddenLayerSize * layer.advanced(by: -1))
-                        + networkInfo.hiddenLayerSize * stage,
-                    count: networkInfo.hiddenLayerSize
-                )
-            )
-        }
-    }
     
-    func bias(forLayer layer: Int, stage: Int) -> Double {
-        assert(layer >= 0 && layer <= networkInfo.hiddenLayers)
-
-        return biases[networkInfo.hiddenLayerSize * layer + stage]
-    }
-*/
-    func squishify<V: ColumnVectorType>(_ v: V) -> ColumnMap<Double> where V.T == Double {
+    func σ<V: ColumnVectorType>(_ v: V) -> ColumnMap<Double> where V.T == Double {
         return ColumnMap(vector: v) { 1 / (1 + exp(-$0)) }
     }
     

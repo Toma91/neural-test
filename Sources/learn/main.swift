@@ -6,7 +6,28 @@
 //
 
 import Darwin.C
+import Matrices
 import Neural
+
+extension IdxFile: TrainingSet {
+  
+    private static let expectedOutput: ColumnVector<Double> = ColumnVector(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
+    
+    public var length: Int {
+        return dimensions[0]
+    }
+    
+    public func shuffle() {
+        // NO OP
+    }
+    
+    public func batch(ofSize size: Int, atOffset index: Int) -> LazyMapRandomAccessCollection<CountableRange<Int>, TrainingData> {
+        return (size * index ..< size * index.advanced(by: 1)).lazy.map {
+            (ColumnVector(elements: self[$0].map({ Double($0) / 255 })), IdxFile.expectedOutput)
+        }
+    }
+    
+}
 
 guard CommandLine.arguments.count > 1 else {
   print("Usage: learn <file>")
@@ -27,13 +48,7 @@ let network = NeuralNetwork(
   )
 )
 
-let expectedOutput = [1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10].map { $0 / 10 }
-
-let trainingSet = (0 ..< f.dimensions[0]).map {
-    (data: f[$0].map({ Double($0) / 255 }), expectedOutput: expectedOutput)
-}
-
-//network.train(withSet: trainingSet, batchSize: 1000, eta: 1)
+network.train(withSet: f, batchSize: 1000, eta: 1)
 print(network.predict(input: f[0].map({ Double($0) / 255 })))
 
 
