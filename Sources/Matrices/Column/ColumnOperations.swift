@@ -13,10 +13,18 @@ public func <~<V: ColumnVectorType, T>(lhs: inout ColumnVector<T>, rhs: V) where
     }
 }
 
-public func *<V: ColumnVectorType, T>(lhs: Matrix<T>, rhs: V) -> ColumnMultiplication<T> where V.T == T {
-    return ColumnMultiplication(lhs: lhs, rhs: rhs)
+public func *<V: ColumnVectorType, T>(lhs: Matrix<T>, rhs: V) -> ColumnMap<T> where V.T == T {
+    return ColumnMap(multiplying: lhs, by: rhs)
 }
 
-public func +<V1: ColumnVectorType, V2: ColumnVectorType, T>(lhs: V1, rhs: V2) -> ColumnAddition<T> where V1.T == T, V2.T == T {
-    return ColumnAddition(lhs: lhs, rhs: rhs)
+public func +<V1: ColumnVectorType, V2: ColumnVectorType, T>(lhs: V1, rhs: V2) -> ColumnMap<T> where V1.T == T, V2.T == T {
+    return ColumnMap(v1: lhs, v2: rhs, operation: +)
+}
+
+public func -<V1: ColumnVectorType, V2: ColumnVectorType, T>(lhs: V1, rhs: V2) -> ColumnMap<T> where V1.T == T, V2.T == T {
+    return ColumnMap(v1: lhs, v2: rhs, operation: -)
+}
+
+public func *<V: ColumnVectorType, T>(lhs: T, rhs: V) -> ColumnMap<T> where V.T == T {
+    return ColumnMap(vector: rhs, operation: { lhs * $0 })
 }

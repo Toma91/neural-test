@@ -5,6 +5,30 @@
 //  Created by Andrea Tomarelli on 09/12/17.
 //
 
+/*
+ 
+ ===================  FORMULE  ===================
+ 
+  ∂C₀    ∂z⁽ˡ⁾ ∂a⁽ˡ⁾  ∂C₀
+ ----- = ----- ----- -----
+ ∂w⁽ˡ⁾   ∂w⁽ˡ⁾ ∂z⁽ˡ⁾ ∂a⁽ˡ⁾
+ 
+ C₀   = somma_di (a⁽ˡ⁾ - y)²
+ z⁽ˡ⁾ = w⁽ˡ⁾ a⁽ˡ⁻¹⁾ + b⁽ˡ⁾
+ a⁽ˡ⁾ = σ(z⁽ˡ⁾)
+ 
+ w⁽ˡ⁾   = [j x k]
+ a⁽ˡ⁾   = [j x 1]
+ a⁽ˡ⁻¹⁾ = [k x 1]
+ b⁽ˡ⁾   = [j x 1]
+ z⁽ˡ⁾   = [j x k] [k x 1] + [j x 1] = [j x 1]
+ 
+ ∂zⱼ⁽ˡ⁾   w⁽ˡ⁾ aⱼ⁽ˡ⁻¹⁾ + bⱼ⁽ˡ⁾
+ ----- = -------------------
+ ∂w⁽ˡ⁾          ∂w⁽ˡ⁾
+ 
+ */
+
 import Darwin.C
 import Matrices
 
@@ -44,33 +68,27 @@ public extension NeuralNetwork {
         
     func train<TS: TrainingSet>(withSet trainingSet: TS, batchSize: Int, eta: Double) {
         trainingSet.shuffle()
-        
-        for i in 0 ..< trainingSet.length / batchSize {
-            miniBatchTrain(miniBatch: trainingSet.batch(ofSize: batchSize, atOffset: i), eta: eta)
-        }
+                
+        for miniBatch in trainingSet.batches(ofSize: batchSize) {
+            miniBatchTrain(miniBatch: miniBatch, eta: eta)
+        }        
     }
 
     private func miniBatchTrain<C: Collection>(miniBatch: C, eta: Double) where C.Element == TrainingSet.TrainingData {
-        for i in 0 ..< neurons.count {
-            for j in 0 ..< neurons[i].length {
-                neurons[i][j] = Double(arc4random()) / Double(UInt32.max)
-            }
-        }
+        fillNeuronsRandom()
+        fillWeightsRandom()
+        fillBiasesRandom()
         
-        for i in 0 ..< biases.count {
-            for j in 0 ..< biases[i].length {
-                biases[i][j] = Double(arc4random()) / Double(UInt32.max)
-            }
-        }
+        for (input, expectedOutput) in miniBatch {
+            let predictedOutput = predict(input: input)
+         
+            let nabla_w = 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput)) * neurons[networkInfo.hiddenLayers].transposed
+            let nabla_b = 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput))
         
-        for i in 0 ..< weights.count {
-            for j in 0 ..< weights[i].nRows {
-                for k in 0 ..< weights[i].nColumns {
-                    weights[i][row: j, column: k] = Double(arc4random()) / Double(UInt32.max)
-                }
-            }
+            print(nabla_w, nabla_b)
         }
     }
+    
  
     /*private func miniBatchTrain(miniBatch: ArraySlice<TrainingData>, eta: Double) {
         for (trainingData, expectedOutput) in miniBatch {
@@ -93,6 +111,36 @@ public extension NeuralNetwork {
             .reduce(0, +)
     }*/
     
+}
+
+private extension NeuralNetwork {
+    
+    func fillNeuronsRandom() {
+        for i in 0 ..< neurons.count {
+            for j in 0 ..< neurons[i].length {
+                neurons[i][j] = Double(arc4random()) / Double(UInt32.max) * 0
+            }
+        }
+    }
+
+    func fillWeightsRandom() {
+        for i in 0 ..< weights.count {
+            for j in 0 ..< weights[i].nRows {
+                for k in 0 ..< weights[i].nColumns {
+                    weights[i][row: j, column: k] = Double(arc4random()) / Double(UInt32.max)
+                }
+            }
+        }
+    }
+    
+    func fillBiasesRandom() {
+        for i in 0 ..< biases.count {
+            for j in 0 ..< biases[i].length {
+                biases[i][j] = Double(arc4random()) / Double(UInt32.max)
+            }
+        }
+    }
+
 }
 
 public extension NeuralNetwork {

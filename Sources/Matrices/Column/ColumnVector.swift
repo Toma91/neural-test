@@ -33,6 +33,14 @@ public extension ColumnVector {
 }
 
 public extension ColumnVector {
+
+    var transposed: RowTransposed<T> {
+        return RowTransposed(transposing: self)
+    }
+    
+}
+
+public extension ColumnVector {
     
     subscript(index: Int) -> T {
         get {

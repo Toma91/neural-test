@@ -1,5 +1,5 @@
 //
-//  MatrixSliceRow.swift
+//  MatrixSliceColumn.swift
 //  Matrices
 //
 //  Created by Andrea Tomarelli on 14/12/17.

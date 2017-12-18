@@ -5,18 +5,16 @@
 //  Created by Andrea Tomarelli on 16/12/17.
 //
 
-import Matrices
-
 public protocol TrainingSet {
     
-    typealias TrainingData = (input: ColumnVector<Double>, output: ColumnVector<Double>)
+    typealias TrainingData = (input: [Double], expectedOutput: [Double])
     
-    associatedtype MiniBatch: RandomAccessCollection where MiniBatch.Element == TrainingData
-    
-    var length: Int { get }
-    
+    associatedtype MiniBatch: Collection where MiniBatch.Element == TrainingData
+
+    associatedtype MiniBatchSequence: Sequence where MiniBatchSequence.Element == MiniBatch
+
     func shuffle()
 
-    func batch(ofSize size: Int, atOffset index: Int) -> MiniBatch
+    func batches(ofSize size: Int) -> MiniBatchSequence
     
 }
