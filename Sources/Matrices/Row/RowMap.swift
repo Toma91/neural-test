@@ -25,11 +25,7 @@ public struct RowMap<T: Numeric>: RowVectorType {
     }
 
     init<V: RowVectorType>(multiplying vector: V, by matrix: Matrix<T>) where V.T == T {
-        precondition(vector.length == matrix.nRows)
-        
-        self.operation  = { c in
-            (0 ..< matrix.nRows).reduce(0) { $0 + vector[$1] * matrix[row: $1, column: c] }
-        }
+        self.operation  = { matrix.multiply(vector: vector, byColumn: $0) }
         self.length     = matrix.nColumns
     }
     
@@ -38,11 +34,7 @@ public struct RowMap<T: Numeric>: RowVectorType {
 public extension RowMap {
     
     subscript(index: Int) -> T {
-        get {
-            precondition(index >= 0 && index < length)
-            
-            return operation(index)
-        }
+        get { return operation(index) }
     }
     
 }

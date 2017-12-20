@@ -24,12 +24,8 @@ public struct ColumnMap<T: Numeric>: ColumnVectorType {
         self.length     = v1.length
     }
     
-    init<V: ColumnVectorType>(multiplying matrix: Matrix<T>, by vector: V) where V.T == T {
-        precondition(matrix.nColumns == vector.length)
-        
-        self.operation  = { r in
-            (0 ..< matrix.nColumns).reduce(0) { $0 + matrix[row: r, column: $1] * vector[$1] }
-        }
+    init<V: ColumnVectorType>(multiplying matrix: Matrix<T>, by vector: V) where V.T == T {        
+        self.operation  = { matrix.multiply(row: $0, by: vector) }
         self.length     = matrix.nRows
     }
     
@@ -38,11 +34,7 @@ public struct ColumnMap<T: Numeric>: ColumnVectorType {
 public extension ColumnMap {
     
     subscript(index: Int) -> T {
-        get {
-            precondition(index >= 0 && index < length)
-            
-            return operation(index)
-        }
+        get { return operation(index) }
     }
     
 }

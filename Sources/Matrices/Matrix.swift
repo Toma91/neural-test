@@ -5,7 +5,7 @@
 //  Created by Andrea Tomarelli on 12/12/17.
 //
 
-public struct Matrix<T: Numeric> {
+public struct Matrix<T: Numeric>: MatrixType {
     
     private var storage:    Storage<T>
     
@@ -24,6 +24,28 @@ public struct Matrix<T: Numeric> {
         self.storage    = storage
         self.nRows      = nRows
         self.nColumns   = nColumns
+    }
+    
+}
+
+extension Matrix {
+
+    func multiply<V: ColumnVectorType>(row: Int, by vector: V) -> T where V.T == T {
+        precondition(row >= 0 && row < nRows)
+        precondition(nColumns == vector.length)
+        
+        return (0 ..< nColumns).reduce(0) {
+            $0 + self[row: row, column: $1] * vector[$1]
+        }
+    }
+    
+    func multiply<V: RowVectorType>(vector: V, byColumn column: Int) -> T where V.T == T {
+        precondition(column >= 0 && column < nColumns)
+        precondition(nRows == vector.length)
+        
+        return (0 ..< nRows).reduce(0) {
+            $0 + vector[$1] * self[row: $1, column: column]
+        }
     }
     
 }
@@ -53,11 +75,11 @@ public extension Matrix {
 
 public extension Matrix {
     
-    subscript(row row: Int) -> MatrixSliceRow<T> {
+    subscript(row row: Int) -> RowMatrixSlice<T> {
         get {
             precondition(row >= 0 && row < nRows)
             
-            return MatrixSliceRow(matrix: self, row: row)
+            return RowMatrixSlice(matrix: self, row: row)
         }
         set {
             precondition(row >= 0 && row < nRows)
@@ -77,11 +99,11 @@ public extension Matrix {
 
 public extension Matrix {
     
-    subscript(column column: Int) -> MatrixSliceColumn<T> {
+    subscript(column column: Int) -> ColumnMatrixSlice<T> {
         get {
             precondition(column >= 0 && column < nColumns)
             
-            return MatrixSliceColumn(matrix: self, column: column)
+            return ColumnMatrixSlice(matrix: self, column: column)
         }
         set {
             precondition(column >= 0 && column < nColumns)

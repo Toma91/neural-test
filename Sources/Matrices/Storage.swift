@@ -17,6 +17,10 @@ final class Storage<T> {
         )
     }
     
+    deinit {
+        buffer.baseAddress!.deallocate(capacity: buffer.count)
+    }
+    
 }
 
 extension Storage {

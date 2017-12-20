@@ -1,5 +1,5 @@
 //
-//  MatrixSliceRow.swift
+//  RowMatrixSlice.swift
 //  Matrices
 //
 //  Created by Andrea Tomarelli on 14/12/17.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct MatrixSliceRow<T: Numeric>: RowVectorType {
+public struct RowMatrixSlice<T: Numeric>: RowVectorType {
     
     private let matrix: Matrix<T>
     
@@ -26,14 +26,10 @@ public struct MatrixSliceRow<T: Numeric>: RowVectorType {
     
 }
 
-public extension MatrixSliceRow {
+public extension RowMatrixSlice {
     
     subscript(index: Int) -> T {
-        get {
-            precondition(index >= 0 && index < length)
-
-            return matrix[row: row, column: index]
-        }
+        get { return matrix[row: row, column: index] }
     }
     
 }

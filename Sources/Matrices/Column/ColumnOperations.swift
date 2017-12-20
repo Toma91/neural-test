@@ -8,9 +8,7 @@
 public func <~<V: ColumnVectorType, T>(lhs: inout ColumnVector<T>, rhs: V) where V.T == T {
     precondition(lhs.length == rhs.length)
     
-    for i in 0 ..< lhs.length {
-        lhs[i] = rhs[i]
-    }
+    for i in 0 ..< lhs.length { lhs[i] = rhs[i] }
 }
 
 public func *<V: ColumnVectorType, T>(lhs: Matrix<T>, rhs: V) -> ColumnMap<T> where V.T == T {
