@@ -43,10 +43,6 @@ public class NeuralNetwork {
 public extension NeuralNetwork {
         
     func train<TS: TrainingSet>(withSet trainingSet: TS, batchSize: Int, eta: Double) {
-        fillNeuronsRandom()
-        fillWeightsRandom()
-        fillBiasesRandom()
-
         trainingSet.shuffle()
                 
         for miniBatch in trainingSet.batches(ofSize: batchSize) {
@@ -55,16 +51,36 @@ public extension NeuralNetwork {
     }
 
     private func miniBatchTrain<C: Collection>(miniBatch: C, eta: Double) where C.Element == TrainingSet.TrainingData {
-        for (input, expectedOutput) in miniBatch {
+        fillNeuronsRandom()
+        fillWeightsRandom()
+        fillBiasesRandom()
+        
+        var trainingResults = miniBatch.reduce(into: []) { (carry: inout Array<(MatrixMap<Double>, ColumnMap<Double>)>, arg1: TrainingSet.TrainingData) in
+            let (input, expectedOutput) = arg1
+            
             let predictedOutput = predict(input: input)
-         
-            let nabla_b = 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput))
-            let nabla_w = nabla_b * transpose(neurons[networkInfo.hiddenLayers])
-            let nabla_a = transpose(weights[networkInfo.hiddenLayers]) * nabla_b
-
-            print(nabla_w, nabla_b, nabla_a)
-            exit(0)
+            var delta = 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput))
+            
+            for (index, layer) in stride(from: networkInfo.hiddenLayers, through: 0, by: -1).enumerated() {
+                let nabla_b = nonLinearityDerivative(weights[layer] * neurons[layer] + biases[layer]) * delta
+                let nabla_w = nabla_b * transpose(neurons[networkInfo.hiddenLayers])
+                delta = transpose(weights[networkInfo.hiddenLayers]) * nabla_b
+                
+                if carry.isEmpty {
+                    carry.append((1 * nabla_w, nabla_b))
+                } else {
+                    carry[index].0 = carry[index].0 + nabla_w
+                    carry[index].1 = carry[index].1 + nabla_b
+                }
+            }
         }
+        
+        for i in 0 ..< trainingResults.count {
+            trainingResults[i].0 = trainingResults[i].0 / Double(trainingResults.count)
+            trainingResults[i].1 = trainingResults[i].1 / Double(trainingResults.count)
+        }
+        
+        print(trainingResults)
     }
     
  
@@ -138,19 +154,19 @@ public extension NeuralNetwork {
     private func predictLayer(atIndex layer: Int) {
         assert(layer >= 0 && layer <= networkInfo.hiddenLayers)
 
-        neurons[layer + 1] <~ σ(weights[layer] * neurons[layer] + biases[layer])
+        neurons[layer + 1] <~ nonLinearity(weights[layer] * neurons[layer] + biases[layer])
     }
     
 }
 
 private extension NeuralNetwork {
     
-    func σ<V: ColumnVectorType>(_ v: V) -> ColumnMap<Double> where V.T == Double {
+    func nonLinearity<V: ColumnVectorType>(_ v: V) -> ColumnMap<Double> where V.T == Double {
         return ColumnMap(vector: v) { 1 / (1 + exp(-$0)) }
     }
     
-    func squishifyDerivative(_ v: Double) -> Double {
-        return exp(v) / ((1 + exp(v)) * (1 + exp(v)))
+    func nonLinearityDerivative<V: ColumnVectorType>(_ v: V) -> ColumnMap<Double> where V.T == Double {
+        return ColumnMap(vector: v) { exp($0) / ((1 + exp($0)) * (1 + exp($0))) }
     }
 
 }

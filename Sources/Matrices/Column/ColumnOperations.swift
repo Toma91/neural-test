@@ -27,6 +27,14 @@ public func *<V: ColumnVectorType>(lhs: V, rhs: V.T) -> ColumnMap<V.T> {
     return ColumnMap(vector: lhs, operation: { rhs * $0 })
 }
 
+public func /<V: ColumnVectorType>(lhs: V, rhs: V.T) -> ColumnMap<V.T> where V.T: BinaryFloatingPoint {
+    return ColumnMap(vector: lhs, operation: { rhs / $0 })
+}
+
+public func *<T, V1: ColumnVectorType, V2: ColumnVectorType>(lhs: V1, rhs: V2) -> ColumnMap<T> where V1.T == T, V2.T == T {
+    return ColumnMap(v1: lhs, v2: rhs, operation: *)
+}
+
 public func *<T, M: MatrixType, V: ColumnVectorType>(lhs: M, rhs: V) -> ColumnMap<T> where M.T == T, V.T == T {
     return ColumnMap(multiplying: lhs, by: rhs)
 }
