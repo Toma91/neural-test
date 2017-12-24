@@ -5,30 +5,6 @@
 //  Created by Andrea Tomarelli on 09/12/17.
 //
 
-/*
- 
- ===================  FORMULE  ===================
- 
-  ∂C₀    ∂z⁽ˡ⁾ ∂a⁽ˡ⁾  ∂C₀
- ----- = ----- ----- -----
- ∂w⁽ˡ⁾   ∂w⁽ˡ⁾ ∂z⁽ˡ⁾ ∂a⁽ˡ⁾
- 
- C₀   = somma_di (a⁽ˡ⁾ - y)²
- z⁽ˡ⁾ = w⁽ˡ⁾ a⁽ˡ⁻¹⁾ + b⁽ˡ⁾
- a⁽ˡ⁾ = σ(z⁽ˡ⁾)
- 
- w⁽ˡ⁾   = [j x k]
- a⁽ˡ⁾   = [j x 1]
- a⁽ˡ⁻¹⁾ = [k x 1]
- b⁽ˡ⁾   = [j x 1]
- z⁽ˡ⁾   = [j x k] [k x 1] + [j x 1] = [j x 1]
- 
- ∂zⱼ⁽ˡ⁾   w⁽ˡ⁾ aⱼ⁽ˡ⁻¹⁾ + bⱼ⁽ˡ⁾
- ----- = -------------------
- ∂w⁽ˡ⁾          ∂w⁽ˡ⁾
- 
- */
-
 import Darwin.C
 import Matrices
 
@@ -67,6 +43,10 @@ public class NeuralNetwork {
 public extension NeuralNetwork {
         
     func train<TS: TrainingSet>(withSet trainingSet: TS, batchSize: Int, eta: Double) {
+        fillNeuronsRandom()
+        fillWeightsRandom()
+        fillBiasesRandom()
+
         trainingSet.shuffle()
                 
         for miniBatch in trainingSet.batches(ofSize: batchSize) {
@@ -75,17 +55,15 @@ public extension NeuralNetwork {
     }
 
     private func miniBatchTrain<C: Collection>(miniBatch: C, eta: Double) where C.Element == TrainingSet.TrainingData {
-        fillNeuronsRandom()
-        fillWeightsRandom()
-        fillBiasesRandom()
-        
         for (input, expectedOutput) in miniBatch {
             let predictedOutput = predict(input: input)
          
-            let nabla_w = 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput)) * neurons[networkInfo.hiddenLayers].transposed
             let nabla_b = 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput))
-        
-            print(nabla_w, nabla_b)
+            let nabla_w = nabla_b * transpose(neurons[networkInfo.hiddenLayers])
+            let nabla_a = transpose(weights[networkInfo.hiddenLayers]) * nabla_b
+
+            print(nabla_w, nabla_b, nabla_a)
+            exit(0)
         }
     }
     

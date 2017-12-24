@@ -34,14 +34,6 @@ public extension RowVector {
 
 public extension RowVector {
     
-    var transposed: ColumnTransposed<T> {
-        return ColumnTransposed(transposing: self)
-    }
-    
-}
-
-public extension RowVector {
-    
     subscript(index: Int) -> T {
         get {
             precondition(index >= 0 && index < length)

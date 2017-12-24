@@ -6,7 +6,7 @@
 //
 
 public protocol RowVectorType {
-
+    
     associatedtype T: Numeric
     
     var length: Int { get }

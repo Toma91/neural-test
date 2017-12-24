@@ -7,14 +7,14 @@
 
 public struct ColumnTransposed<T: Numeric>: ColumnVectorType {
    
-    private let accessor:   (Int) -> T
+    private let elementAccessor:    (Int) -> T
     
-    public let length:      Int
+    public let length:              Int
     
     
     init<V: RowVectorType>(transposing vector: V) where V.T == T {
-        self.accessor   = { vector[$0] }
-        self.length     = vector.length
+        self.elementAccessor    = { vector[$0] }
+        self.length             = vector.length
     }
     
 }
@@ -22,7 +22,11 @@ public struct ColumnTransposed<T: Numeric>: ColumnVectorType {
 public extension ColumnTransposed {
     
     subscript(index: Int) -> T {
-        get { return accessor(index) }
+        get { return elementAccessor(index) }
     }
     
+}
+
+public func transpose<V: RowVectorType>(_ vector: V) -> ColumnTransposed<V.T> {
+    return ColumnTransposed(transposing: vector)
 }

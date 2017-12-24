@@ -28,28 +28,6 @@ public struct Matrix<T: Numeric>: MatrixType {
     
 }
 
-extension Matrix {
-
-    func multiply<V: ColumnVectorType>(row: Int, by vector: V) -> T where V.T == T {
-        precondition(row >= 0 && row < nRows)
-        precondition(nColumns == vector.length)
-        
-        return (0 ..< nColumns).reduce(0) {
-            $0 + self[row: row, column: $1] * vector[$1]
-        }
-    }
-    
-    func multiply<V: RowVectorType>(vector: V, byColumn column: Int) -> T where V.T == T {
-        precondition(column >= 0 && column < nColumns)
-        precondition(nRows == vector.length)
-        
-        return (0 ..< nRows).reduce(0) {
-            $0 + vector[$1] * self[row: $1, column: column]
-        }
-    }
-    
-}
-
 public extension Matrix {
     
     subscript(row row: Int, column column: Int) -> T {
