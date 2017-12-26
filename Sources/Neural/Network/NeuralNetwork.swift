@@ -55,37 +55,40 @@ public extension NeuralNetwork {
     }
 
     private func miniBatchTrain<C: Collection>(miniBatch: C, eta: Double) where C.Element == TrainingSet.TrainingData {
-        var nablas: [(Matrix<Double>, ColumnVector<Double>)] = []
-
-        var delta = ColumnVector<Double>(length: 0)
-        var nabla_b = ColumnVector<Double>(length: 0)
-        var nabla_w = Matrix<Double>(nRows: 0, nColumns: 0)
+        var nablas_w: [Matrix<Double>] = []
+        var nablas_b: [ColumnVector<Double>] = []
 
         for (input, expectedOutput) in miniBatch {
             let predictedOutput = predict(input: input)
             
-            delta <~ 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput))
+            var delta = 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput))
 
             for (index, layer) in stride(from: networkInfo.hiddenLayers, through: 0, by: -1).enumerated() {
-                nabla_b <~ σ̇(weights[layer] • neurons[layer] + biases[layer]) * delta
-                nabla_w <~ nabla_b • neurons[layer].ᵀ
+                let nabla_b = σ̇(weights[layer] • neurons[layer] + biases[layer]) * delta
+                let nabla_w = nabla_b • neurons[layer].ᵀ
                 delta <~ weights[layer].ᵀ • nabla_b
 
-                if nablas.count <= index {
-                    nablas.append((Matrix(nabla_w), ColumnVector(nabla_b)))
+                if nablas_w.count <= index {
+                    nablas_w.append(nabla_w)
                 } else {
-                    nablas[index].0 += nabla_w
-                    nablas[index].1 += nabla_b
+                    nablas_w[index] += nabla_w
+                }
+
+                if nablas_b.count <= index {
+                    nablas_b.append(nabla_b)
+                } else {
+                    nablas_b[index] += nabla_b
                 }
             }
         }
         
-        for i in 0 ..< nablas.count {
-            weights[nablas.count - i - 1] -= nablas[i].0 / eta * Double(nablas.count)
-            biases[nablas.count - i - 1] -= nablas[i].1 / eta * Double(nablas.count)
+        for i in 0 ..< nablas_w.count {
+            weights[nablas_w.count - i - 1] -= nablas_w[i] / eta * Double(nablas_w.count)
         }
         
-        exit(0)
+        for i in 0 ..< nablas_b.count {
+            biases[nablas_b.count - i - 1] -= nablas_b[i] / eta * Double(nablas_b.count)
+        }
     }
     
 }
@@ -141,16 +144,16 @@ public extension NeuralNetwork {
 
 private extension NeuralNetwork {
     
-    func σ<V: ColumnVectorType>(_ v: V) -> ColumnOperation<Double> where V.T == Double {
-        return ColumnOperation(vector: v) {
+    func σ(_ v: ColumnVector<Double>) -> ColumnVector<Double> {fatalError()
+/*        return ColumnOperation1(vector: v) {
             1 / (1 + exp($0))
         }
-    }
+*/    }
     
-    func σ̇<V: ColumnVectorType>(_ v: V) -> ColumnOperation<Double> where V.T == Double {
-        return ColumnOperation(vector: v) {
+    func σ̇(_ v: ColumnVector<Double>) -> ColumnVector<Double> {fatalError()
+/*        return ColumnOperation1(v1: v) {
             exp($0) / ((1 + exp($0)) * (1 + exp($0)))
         }
-    }
+*/    }
 
 }

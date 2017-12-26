@@ -5,6 +5,11 @@
 //  Created by Andrea Tomarelli on 26/12/17.
 //
 
+public func -<T>(lhs: ColumnVector<T>, rhs: ColumnVector<T>) -> ColumnOperation2<T> {
+    return ColumnOperation2(v1: lhs, v2: rhs, operation: -)
+}
+
+/*
 public func -<T, V1: ColumnVectorType, V2: ColumnVectorType>(lhs: V1, rhs: V2) -> ColumnOperation<T> where V1.T == T, V2.T == T {
     return ColumnOperation(v1: lhs, v2: rhs, operation: -)
 }
@@ -39,3 +44,4 @@ public func -=<M: MatrixType>(lhs: inout Matrix<M.T>, rhs: M) {
         }
     }
 }
+*/

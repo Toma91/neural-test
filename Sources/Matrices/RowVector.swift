@@ -1,11 +1,11 @@
 //
-//  ColumnVector.swift
+//  RowVector.swift
 //  Matrices
 //
 //  Created by Andrea Tomarelli on 14/12/17.
 //
 
-public struct ColumnVector<T: Numeric>: ColumnVectorType {
+public struct RowVector<T: Numeric> {
     
     private var storage:    Storage<T>
 
@@ -19,15 +19,7 @@ public struct ColumnVector<T: Numeric>: ColumnVectorType {
     
 }
 
-public extension ColumnVector {
-
-    init<V: ColumnVectorType>(_ other: V) where V.T == T {
-        let storage = Storage<T>(size: other.length)
-        
-        for i in 0 ..< other.length { storage[i] = other[i] }
-
-        self.init(storage: storage)
-    }
+public extension RowVector {
     
     init(length: Int) {
         self.init(storage: Storage(size: length))
@@ -43,15 +35,15 @@ public extension ColumnVector {
 
 }
 
-public extension ColumnVector {
+public extension RowVector {
 
-    var ᵀ: RowVector<T> {
-        return RowVector(storage: storage)
+    var ᵀ: ColumnVector<T> {
+        return ColumnVector(storage: storage)
     }
     
 }
 
-public extension ColumnVector {
+public extension RowVector {
     
     subscript(index: Int) -> T {
         get {

@@ -7,30 +7,14 @@
 
 infix operator <~: AssignmentPrecedence
 
-public func <~<V: ColumnVectorType>(lhs: inout ColumnVector<V.T>, rhs: V) {
-    if lhs.length == rhs.length {
-        for i in 0 ..< lhs.length { lhs[i] = rhs[i] }
-    } else {
-        lhs = ColumnVector(rhs)
-    }
+public func <~<T>(lhs: inout ColumnVector<T>, rhs: ColumnOperation1<T>) {
+    rhs.assign(to: &lhs)
 }
 
-public func <~<V: RowVectorType>(lhs: inout RowVector<V.T>, rhs: V) {
-    if lhs.length == rhs.length {
-        for i in 0 ..< lhs.length { lhs[i] = rhs[i] }
-    } else {
-        lhs = RowVector(rhs)
-    }
+public func <~<T>(lhs: inout ColumnVector<T>, rhs: ColumnOperation2<T>) {
+    rhs.assign(to: &lhs)
 }
 
-public func <~<M: MatrixType>(lhs: inout Matrix<M.T>, rhs: M) {
-    if lhs.nRows == rhs.nRows && lhs.nColumns == rhs.nColumns {
-        for r in 0 ..< lhs.nRows {
-            for c in 0 ..< lhs.nColumns {
-                lhs[row: r, column: c] = rhs[row: r, column: c]
-            }
-        }
-    } else {
-        lhs = Matrix(rhs)
-    }
+public func <~<T>(lhs: inout Matrix<T>, rhs: ColumnRowOperation<T>) {
+    fatalError()
 }
