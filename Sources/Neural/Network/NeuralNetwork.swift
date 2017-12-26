@@ -55,6 +55,42 @@ public extension NeuralNetwork {
         fillWeightsRandom()
         fillBiasesRandom()
         
+        var allNablas: [[(Matrix<Double>, ColumnVector<Double>)]] = []
+        
+        for (input, expectedOutput) in miniBatch {
+            let predictedOutput = predict(input: input)
+            var delta = 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput))
+            
+            let nablas: [(Matrix<Double>, ColumnVector<Double>)] = stride(from: networkInfo.hiddenLayers, through: 0, by: -1).map { layer in
+                let nabla_b = σ̇(weights[layer] • neurons[layer] + biases[layer]) * delta
+                let nabla_w = nabla_b • neurons[layer].ᵀ
+                delta = weights[layer].ᵀ • nabla_b
+                
+                return (nabla_w, nabla_b)
+            }
+            
+            allNablas.append(nablas)
+        }
+        
+        var summed = allNablas.reduce(into: [] as [(Matrix<Double>, ColumnVector<Double>)]) {
+            if $0.isEmpty {
+                $0 = $1
+            } else {
+                for i in 0 ..< $0.count {
+                    $0[i] = ($0[i].0 + $1[i].0, $0[i].1 + $1[i].1)
+                }
+            }
+        }
+        
+        summed = summed.reversed().map {
+            ($0.0 / Double(summed.count), $0.1 / Double(summed.count))
+        }
+        
+        print(summed)
+        print()
+        
+        
+        /*
         var trainingResults = miniBatch.reduce(into: []) { (carry: inout Array<(MatrixMap<Double>, ColumnMap<Double>)>, arg1: TrainingSet.TrainingData) in
             let (input, expectedOutput) = arg1
             
@@ -80,30 +116,8 @@ public extension NeuralNetwork {
             trainingResults[i].1 = trainingResults[i].1 / Double(trainingResults.count)
         }
         
-        print(trainingResults)
+        print(trainingResults)*/
     }
-    
- 
-    /*private func miniBatchTrain(miniBatch: ArraySlice<TrainingData>, eta: Double) {
-        for (trainingData, expectedOutput) in miniBatch {
-            let predictedOutput = predict(input: trainingData)
-            
-            let deZ_deW_0 = input(forLayer: networkInfo.hiddenLayers)[0]
-            let deA_deZ_0 = weights(forLayer: networkInfo.hiddenLayers, stage: 0) * input(forLayer: networkInfo.hiddenLayers)
-                + bias(forLayer: networkInfo.hiddenLayers, stage: 0)
-            let deC_deA_0 = 2 * zip(predictedOutput, expectedOutput).map({ ($0 - $1) * ($0 - $1) }).reduce(0, +)
-            let deC_deW_0 = deZ_deW_0 * deA_deZ_0 * deC_deA_0
-            
-            print(deC_deW_0)
-            print()
-        }
-    }*/
-    
-    /*private func cost(output: [Double], expected: [Double]) -> Double {
-        return zip(output, expected)
-            .map { ($0 - $1) * ($0 - $1) }
-            .reduce(0, +)
-    }*/
     
 }
 
@@ -154,19 +168,19 @@ public extension NeuralNetwork {
     private func predictLayer(atIndex layer: Int) {
         assert(layer >= 0 && layer <= networkInfo.hiddenLayers)
 
-        neurons[layer + 1] <~ nonLinearity(weights[layer] * neurons[layer] + biases[layer])
+        neurons[layer + 1] = σ(weights[layer] • neurons[layer] + biases[layer])
     }
     
 }
 
 private extension NeuralNetwork {
     
-    func nonLinearity<V: ColumnVectorType>(_ v: V) -> ColumnMap<Double> where V.T == Double {
-        return ColumnMap(vector: v) { 1 / (1 + exp(-$0)) }
+    func σ(_ v: ColumnVector<Double>) -> ColumnVector<Double> {
+        return v.map { 1 / (1 + exp($0)) }
     }
     
-    func nonLinearityDerivative<V: ColumnVectorType>(_ v: V) -> ColumnMap<Double> where V.T == Double {
-        return ColumnMap(vector: v) { exp($0) / ((1 + exp($0)) * (1 + exp($0))) }
+    func σ̇(_ v: ColumnVector<Double>) -> ColumnVector<Double> {
+        return v.map { exp($0) / ((1 + exp($0)) * (1 + exp($0))) }
     }
 
 }

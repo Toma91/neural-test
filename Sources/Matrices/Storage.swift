@@ -9,6 +9,8 @@ final class Storage<T> {
     
     private let buffer: UnsafeMutableBufferPointer<T>
     
+    var count:          Int { return buffer.count }
+
     
     init(size: Int) {
         self.buffer = UnsafeMutableBufferPointer(

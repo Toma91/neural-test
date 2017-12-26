@@ -5,7 +5,7 @@
 //  Created by Andrea Tomarelli on 12/12/17.
 //
 
-public struct Matrix<T: Numeric>: MatrixType {
+public struct Matrix<T: Numeric> {
     
     private var storage:    Storage<T>
     
@@ -29,7 +29,35 @@ public struct Matrix<T: Numeric>: MatrixType {
 }
 
 public extension Matrix {
+
+    var ᵀ: Matrix<T> {
+        var result = Matrix<T>(nRows: nColumns, nColumns: nRows)
+        
+        for r in 0 ..< nRows {
+            for c in 0 ..< nColumns {
+                result[row: c, column: r] = self[row: r, column: c]
+            }
+        }
+        
+        return result
+    }
     
+    func map<U>(_ transform: (T) throws -> U) rethrows -> Matrix<U> {
+        var result = Matrix<U>(nRows: nRows, nColumns: nColumns)
+        
+        for r in 0 ..< nRows {
+            for c in 0 ..< nColumns {
+                result[row: r, column: c] = try transform(self[row: r, column: c])
+            }
+        }
+        
+        return result
+    }
+    
+}
+
+public extension Matrix {
+
     subscript(row row: Int, column column: Int) -> T {
         get {
             precondition(row >= 0 && row < nRows)
@@ -53,11 +81,17 @@ public extension Matrix {
 
 public extension Matrix {
     
-    subscript(row row: Int) -> RowMatrixSlice<T> {
+    subscript(row row: Int) -> RowVector<T> {
         get {
             precondition(row >= 0 && row < nRows)
             
-            return RowMatrixSlice(matrix: self, row: row)
+            var result = RowVector<T>(length: nColumns)
+
+            for i in 0 ..< nColumns {
+                result[i] = storage[row * nColumns + i]
+            }
+
+            return result
         }
         set {
             precondition(row >= 0 && row < nRows)
@@ -77,11 +111,18 @@ public extension Matrix {
 
 public extension Matrix {
     
-    subscript(column column: Int) -> ColumnMatrixSlice<T> {
+    subscript(column column: Int) -> ColumnVector<T> {
         get {
             precondition(column >= 0 && column < nColumns)
+        
             
-            return ColumnMatrixSlice(matrix: self, column: column)
+            var result = ColumnVector<T>(length: nRows)
+            
+            for i in 0 ..< nRows {
+                result[i] = storage[i * nColumns + column]
+            }
+            
+            return result
         }
         set {
             precondition(column >= 0 && column < nColumns)

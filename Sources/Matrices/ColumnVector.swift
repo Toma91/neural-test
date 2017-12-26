@@ -5,31 +5,48 @@
 //  Created by Andrea Tomarelli on 14/12/17.
 //
 
-public struct ColumnVector<T: Numeric>: ColumnVectorType {
- 
+public struct ColumnVector<T: Numeric> {
+    
     private var storage:    Storage<T>
 
     public let length:      Int
+
     
-    
-    public init(length: Int) {
-        self.storage    = Storage(size: length)
-        self.length     = length
-    }
-    
-    public init(elements: [T]) {
-        self.storage    = Storage(elements: elements)
-        self.length     = elements.count
+    init(storage: Storage<T>) {
+        self.storage    = storage
+        self.length     = storage.count
     }
     
 }
 
 public extension ColumnVector {
+
+    init(length: Int) {
+        self.init(storage: Storage(size: length))
+    }
+    
+    init(elements: [T]) {
+        self.init(storage: Storage(elements: elements))
+    }
     
     init(_ elements: T...) {
         self.init(elements: elements)
     }
 
+}
+
+public extension ColumnVector {
+
+    var ᵀ: RowVector<T> {
+        return RowVector(storage: storage)
+    }
+    
+    func map<U>(_ transform: (T) throws -> U) rethrows -> ColumnVector<U> {
+        var result = ColumnVector<U>(length: length)
+        for i in 0 ..< length { result[i] = try transform(self[i]) }
+        return result
+    }
+    
 }
 
 public extension ColumnVector {
