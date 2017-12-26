@@ -5,7 +5,7 @@
 //  Created by Andrea Tomarelli on 14/12/17.
 //
 
-public struct ColumnVector<T: Numeric> {
+public struct ColumnVector<T: Numeric>: ColumnVectorType {
     
     private var storage:    Storage<T>
 
@@ -21,6 +21,14 @@ public struct ColumnVector<T: Numeric> {
 
 public extension ColumnVector {
 
+    init<V: ColumnVectorType>(_ other: V) where V.T == T {
+        let storage = Storage<T>(size: other.length)
+        
+        for i in 0 ..< other.length { storage[i] = other[i] }
+
+        self.init(storage: storage)
+    }
+    
     init(length: Int) {
         self.init(storage: Storage(size: length))
     }
@@ -39,12 +47,6 @@ public extension ColumnVector {
 
     var ᵀ: RowVector<T> {
         return RowVector(storage: storage)
-    }
-    
-    func map<U>(_ transform: (T) throws -> U) rethrows -> ColumnVector<U> {
-        var result = ColumnVector<U>(length: length)
-        for i in 0 ..< length { result[i] = try transform(self[i]) }
-        return result
     }
     
 }

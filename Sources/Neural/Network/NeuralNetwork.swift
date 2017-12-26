@@ -90,6 +90,7 @@ public extension NeuralNetwork {
         print()
         
         
+        
         /*
         var trainingResults = miniBatch.reduce(into: []) { (carry: inout Array<(MatrixMap<Double>, ColumnMap<Double>)>, arg1: TrainingSet.TrainingData) in
             let (input, expectedOutput) = arg1
@@ -176,11 +177,13 @@ public extension NeuralNetwork {
 private extension NeuralNetwork {
     
     func σ(_ v: ColumnVector<Double>) -> ColumnVector<Double> {
-        return v.map { 1 / (1 + exp($0)) }
+        //return v.map { 1 / (1 + exp($0)) }
     }
     
-    func σ̇(_ v: ColumnVector<Double>) -> ColumnVector<Double> {
-        return v.map { exp($0) / ((1 + exp($0)) * (1 + exp($0))) }
+    func σ̇<V: ColumnVectorType>(_ v: V) -> ColumnOperation<Double> where V.T == Double {
+        return ColumnOperation(vector: v) { exp($0) / ((1 + exp($0)) * (1 + exp($0))) }
+        
+        //return v.map { exp($0) / ((1 + exp($0)) * (1 + exp($0))) }
     }
 
 }

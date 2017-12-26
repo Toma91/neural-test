@@ -7,11 +7,11 @@
 
 public extension Array where Element: Numeric {
     
-    init(vector: ColumnVector<Element>) {
+    init<V: ColumnVectorType>(vector: V) where V.T == Element {
         self = (0 ..< vector.length).map { vector[$0] }
     }
     
-    init(vector: RowVector<Element>) {
+    init<V: RowVectorType>(vector: V) where V.T == Element {
         self = (0 ..< vector.length).map { vector[$0] }
     }
     
