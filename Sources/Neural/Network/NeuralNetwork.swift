@@ -57,24 +57,33 @@ public extension NeuralNetwork {
         
         var nablas: [(Matrix<Double>, ColumnVector<Double>)] = []
 
-        
+        var delta = ColumnVector<Double>(length: 0)
+        var nabla_b = ColumnVector<Double>(length: 0)
+        var nabla_w = Matrix<Double>(nRows: 0, nColumns: 0)
+
         for (input, expectedOutput) in miniBatch {
             let predictedOutput = predict(input: input)
-            var delta = 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput))
+            
+            delta <~ 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput))
 
             for (index, layer) in stride(from: networkInfo.hiddenLayers, through: 0, by: -1).enumerated() {
-                let nabla_b = σ̇(weights[layer] • neurons[layer] + biases[layer]) * delta
-                let nabla_w = nabla_b • neurons[layer].ᵀ
-                delta = weights[layer].ᵀ • nabla_b
+                nabla_b <~ σ̇(weights[layer] • neurons[layer] + biases[layer]) * delta
+                nabla_w <~ nabla_b • neurons[layer].ᵀ
+                delta <~ weights[layer].ᵀ • nabla_b
 
                 if nablas.count <= index {
                     nablas.append((Matrix(nabla_w), ColumnVector(nabla_b)))
                 } else {
-                    
+                    nablas[index].0 += nabla_w
+                    nablas[index].1 += nabla_b
                 }
             }
         }
         
+        for i in 0 ..< nablas.count {
+            weights[nablas.count - i - 1] -= nablas[i].0 / eta * Double(nablas.count)
+            biases[nablas.count - i - 1] -= nablas[i].1 / eta * Double(nablas.count)
+        }
         
         
         
@@ -113,7 +122,6 @@ public extension NeuralNetwork {
         }
         
         print(summed)*/
-        print()
         
         
         

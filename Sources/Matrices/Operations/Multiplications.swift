@@ -28,3 +28,7 @@ public func *<V: ColumnVectorType>(lhs: V.T, rhs: V) -> ColumnOperation<V.T> {
 public func *<V: RowVectorType>(lhs: V.T, rhs: V) -> RowOperation<V.T> {
     return RowOperation(vector: rhs, operation: { lhs * $0 })
 }
+
+public func *<M: MatrixType>(lhs: M, rhs: M.T) -> MatrixOperation<M.T> {
+    return MatrixOperation(matrix: lhs, operation: { $0 * rhs })
+}

@@ -9,6 +9,8 @@ import Darwin.C
 import Matrices
 import Neural
 
+import Foundation
+
 extension IdxFile: TrainingSet {
     
     public typealias MiniBatch = LazyMapRandomAccessCollection<CountableRange<Int>, TrainingData>
@@ -60,7 +62,9 @@ let network = NeuralNetwork(
     )
 )
 
+let d = Date()
 network.train(withSet: f, batchSize: 1000, eta: 1)
+print("training time (s):", Date().timeIntervalSince(d))
 print(network.predict(input: f[0].map({ Double($0) / 255 })))
 
 

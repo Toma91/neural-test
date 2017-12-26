@@ -18,8 +18,8 @@ public struct MatrixRowSlice<T: Numeric>: RowVectorType {
         precondition(row >= 0 && row < matrix.nRows)
     
         self.matrix = matrix
-        self.row = row
-        self.length = matrix.nRows
+        self.row    = row
+        self.length = matrix.nColumns
     }
     
 }

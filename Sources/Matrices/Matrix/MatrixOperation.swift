@@ -18,6 +18,14 @@ public struct MatrixOperation<T: Numeric>: MatrixType {
     public let nColumns:            Int
     
     
+    public init<M: MatrixType>(matrix: M, operation: @escaping (T) -> T) where M.T == T {
+        self.elementAccessor    = { operation(matrix[row: $0, column: $1]) }
+        self.rowAccessor        = { RowOperation(vector: matrix[row: $0], operation: operation) }
+        self.columnAccessor     = { ColumnOperation(vector: matrix[column: $0], operation: operation) }
+        self.nRows              = matrix.nRows
+        self.nColumns           = matrix.nColumns
+    }
+    
     init<M1: MatrixType, M2: MatrixType>(m1: M1, m2: M2, operation: @escaping (T, T) -> T) where M1.T == T, M2.T == T {
         precondition(m1.nRows == m2.nRows)
         precondition(m1.nColumns == m2.nColumns)
