@@ -24,12 +24,17 @@ public struct ColumnOperation<T: Numeric>: ColumnVectorType {
         self.length     = v1.length
     }
  
-    init<V: ColumnVectorType>(multiplying matrix: Matrix<T>, by vector: V) where V.T == T {
+    init<M: MatrixType, V: ColumnVectorType>(multiplying matrix: M, by vector: V) where M.T == T, V.T == T {
         precondition(matrix.nColumns == vector.length)
         
         self.accessor   = { matrix[row: $0] • vector }
         self.length     = matrix.nRows
 
+    }
+    
+    init<V: RowVectorType>(transposing vector: V) where V.T == T {
+        self.accessor   = { vector[$0] }
+        self.length     = vector.length
     }
     
 }

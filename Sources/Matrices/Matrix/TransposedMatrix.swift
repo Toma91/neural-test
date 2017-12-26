@@ -7,17 +7,23 @@
 
 public struct TransposedMatrix<T: Numeric>: MatrixType {
    
-    private let accessor:   (Int, Int) -> T
+    private let elementAccessor:    (Int, Int) -> T
 
-    public let nRows:       Int
+    private let rowAccessor:        (Int) -> RowOperation<T>
+
+    private let columnAccessor:     (Int) -> ColumnOperation<T>
     
-    public let nColumns:    Int
+    public let nRows:               Int
+    
+    public let nColumns:            Int
     
     
     init<M: MatrixType>(transposing matrix: M) where M.T == T {
-        self.accessor   = { matrix[row: $1, column: $0] }
-        self.nRows      = matrix.nColumns
-        self.nColumns   = matrix.nRows
+        self.elementAccessor    = { matrix[row: $1, column: $0] }
+        self.rowAccessor        = { RowOperation(transposing: matrix[column: $0]) }
+        self.columnAccessor     = { ColumnOperation(transposing: matrix[row: $0]) }
+        self.nRows              = matrix.nColumns
+        self.nColumns           = matrix.nRows
     }
     
 }
@@ -31,7 +37,15 @@ public extension TransposedMatrix {
 public extension TransposedMatrix {
 
     subscript(row row: Int, column column: Int) -> T {
-        get { return accessor(row, column) }
+        get { return elementAccessor(row, column) }
+    }
+    
+    subscript(row row: Int) -> RowOperation<T> {
+        get { return rowAccessor(row) }
+    }
+    
+    subscript(column column: Int) -> ColumnOperation<T> {
+        get { return columnAccessor(column) }
     }
     
 }

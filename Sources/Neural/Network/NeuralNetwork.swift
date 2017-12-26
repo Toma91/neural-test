@@ -55,6 +55,32 @@ public extension NeuralNetwork {
         fillWeightsRandom()
         fillBiasesRandom()
         
+        var nablas: [(Matrix<Double>, ColumnVector<Double>)] = []
+
+        
+        for (input, expectedOutput) in miniBatch {
+            let predictedOutput = predict(input: input)
+            var delta = 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput))
+
+            for (index, layer) in stride(from: networkInfo.hiddenLayers, through: 0, by: -1).enumerated() {
+                let nabla_b = σ̇(weights[layer] • neurons[layer] + biases[layer]) * delta
+                let nabla_w = nabla_b • neurons[layer].ᵀ
+                delta = weights[layer].ᵀ • nabla_b
+
+                if nablas.count <= index {
+                    nablas.append((Matrix(nabla_w), ColumnVector(nabla_b)))
+                } else {
+                    
+                }
+            }
+        }
+        
+        
+        
+        
+        
+        /*
+        
         var allNablas: [[(Matrix<Double>, ColumnVector<Double>)]] = []
         
         for (input, expectedOutput) in miniBatch {
@@ -86,7 +112,7 @@ public extension NeuralNetwork {
             ($0.0 / Double(summed.count), $0.1 / Double(summed.count))
         }
         
-        print(summed)
+        print(summed)*/
         print()
         
         
@@ -169,21 +195,23 @@ public extension NeuralNetwork {
     private func predictLayer(atIndex layer: Int) {
         assert(layer >= 0 && layer <= networkInfo.hiddenLayers)
 
-        neurons[layer + 1] = σ(weights[layer] • neurons[layer] + biases[layer])
+        neurons[layer + 1] = ColumnVector(σ(weights[layer] • neurons[layer] + biases[layer]))
     }
     
 }
 
 private extension NeuralNetwork {
     
-    func σ(_ v: ColumnVector<Double>) -> ColumnVector<Double> {
-        //return v.map { 1 / (1 + exp($0)) }
+    func σ<V: ColumnVectorType>(_ v: V) -> ColumnOperation<Double> where V.T == Double {
+        return ColumnOperation(vector: v) {
+            1 / (1 + exp($0))
+        }
     }
     
     func σ̇<V: ColumnVectorType>(_ v: V) -> ColumnOperation<Double> where V.T == Double {
-        return ColumnOperation(vector: v) { exp($0) / ((1 + exp($0)) * (1 + exp($0))) }
-        
-        //return v.map { exp($0) / ((1 + exp($0)) * (1 + exp($0))) }
+        return ColumnOperation(vector: v) {
+            exp($0) / ((1 + exp($0)) * (1 + exp($0)))
+        }
     }
 
 }

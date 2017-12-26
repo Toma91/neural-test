@@ -21,10 +21,10 @@ public func •<T, R: RowVectorType, C: ColumnVectorType>(lhs: R, rhs: C) -> T w
     return result
 }
 
-public func •<V: ColumnVectorType>(lhs: Matrix<V.T>, rhs: V) -> ColumnOperation<V.T> {
+public func •<T, M: MatrixType, V: ColumnVectorType>(lhs: M, rhs: V) -> ColumnOperation<T> where M.T == T, V.T == T {
     return ColumnOperation(multiplying: lhs, by: rhs)
 }
 
-public func •<V: RowVectorType>(lhs: V, rhs: Matrix<V.T>) -> RowOperation<V.T> {
+public func •<T, V: RowVectorType, M: MatrixType>(lhs: V, rhs: M) -> RowOperation<T> where M.T == T, V.T == T {
     return RowOperation(multiplying: lhs, by: rhs)
 }

@@ -25,6 +25,20 @@ public struct Matrix<T: Numeric>: MatrixType {
         self.nRows      = nRows
         self.nColumns   = nColumns
     }
+
+    public init<M: MatrixType>(_ other: M) where M.T == T {
+        let storage = Storage<T>(size: other.nRows * other.nColumns)
+        
+        for r in 0 ..< other.nRows {
+            for c in 0 ..< other.nColumns {
+                storage[r * other.nColumns + c] = other[row: r, column: c]
+            }
+        }
+        
+        self.storage    = storage
+        self.nRows      = other.nRows
+        self.nColumns   = other.nColumns
+    }
     
 }
 
