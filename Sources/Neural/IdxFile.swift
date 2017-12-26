@@ -65,9 +65,10 @@ public extension IdxFile {
         get {
             precondition(index < dimensions[0], "Invalid index not in range 0 ..< \(dimensions[0])")
             
+            let offset = dimensions.count.advanced(by: 1) * 4
             let size = dimensions.suffix(from: 1).reduce(1, *)
             
-            return UnsafeBufferPointer(start: storage.advanced(by: index * size), count: size)
+            return UnsafeBufferPointer(start: storage.advanced(by: offset + index * size), count: size)
         }
     }
     

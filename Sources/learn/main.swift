@@ -11,14 +11,12 @@ import Neural
 
 import Foundation
 
-extension IdxFile: TrainingSet {
+struct TrSet: TrainingSet {
     
     public typealias MiniBatch = LazyMapRandomAccessCollection<CountableRange<Int>, TrainingData>
     
     public typealias MiniBatchSequence = LazyMapSequence<StrideTo<Int>, MiniBatch>
     
-    
-    private static let expectedOutput: [Double] = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     
     
     public func shuffle() {
@@ -26,45 +24,80 @@ extension IdxFile: TrainingSet {
     }
     
     public func batches(ofSize size: Int) -> MiniBatchSequence {
-        return stride(from: 0, to: dimensions[0], by: size).lazy.map {
+        return stride(from: 0, to: fi.dimensions[0], by: size).lazy.map {
             self.createMiniBatch(start: $0, size: size)
         }
     }
     
     private func createMiniBatch(start: Int, size: Int) -> MiniBatch {
-        let end = min(start.advanced(by: size), dimensions[0])
+        let end = min(start.advanced(by: size), fi.dimensions[0])
         
         return (start ..< end).lazy.map(createTrainingData)
     }
     
     private func createTrainingData(index: Int) -> TrainingData {
-        return (self[index].map({ Double($0) / 255 }), IdxFile.expectedOutput)
+        return (fi[index].map({ Double($0) / 255 }), fl[index].flatMap(createOutput))
+    }
+    
+    private func createOutput(a: UInt8) -> [Double] {
+        switch a {
+            
+        case 0: return [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        case 1: return [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+        case 2: return [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+        case 3: return [0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+        case 4: return [0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
+        case 5: return [0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+        case 6: return [0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
+        case 7: return [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]
+        case 8: return [0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+        case 9: return [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+        
+        default: preconditionFailure()
+            
+        }
+    }
+    
+    private let fi: IdxFile
+
+    private let fl: IdxFile
+
+    init(fi: IdxFile, fl: IdxFile) {
+        self.fi = fi
+        self.fl = fl
     }
     
 }
 
-guard CommandLine.arguments.count > 1 else {
-    print("Usage: learn <file>")
+guard CommandLine.arguments.count == 3 else {
+    print("Usage: learn <image file> <labels file>")
     exit(0)
 }
 
-guard let f = IdxFile(path: CommandLine.arguments[1]) else {
-    print("Could not load idx file")
+guard let fi = IdxFile(path: CommandLine.arguments[1]) else {
+    print("Could not load idx image file")
+    exit(0)
+}
+
+guard let fl = IdxFile(path: CommandLine.arguments[2]) else {
+    print("Could not load idx labels file")
     exit(0)
 }
 
 let network = NeuralNetwork(
     networkInfo: NetworkInfo(
-        inputSize: f.dimensions.suffix(from: 1).reduce(1, *),
+        inputSize: fi.dimensions.suffix(from: 1).reduce(1, *),
         hiddenLayers: 2,
         hiddenLayerSize: 16,
         outputSize: 10
     )
 )
 
+let set = TrSet(fi: fi, fl: fl)
+
 let d = Date()
-network.train(withSet: f, batchSize: 1000, eta: 1)
+network.train(withSet: set, batchSize: 1000, eta: 1)
 print("training time (s):", Date().timeIntervalSince(d))
-print(network.predict(input: f[0].map({ Double($0) / 255 })))
+print(network.predict(input: fi[0].map({ Double($0) / 255 })))
 
 

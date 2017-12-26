@@ -43,6 +43,10 @@ public class NeuralNetwork {
 public extension NeuralNetwork {
         
     func train<TS: TrainingSet>(withSet trainingSet: TS, batchSize: Int, eta: Double) {
+        fillNeuronsRandom()
+        fillWeightsRandom()
+        fillBiasesRandom()
+
         trainingSet.shuffle()
                 
         for miniBatch in trainingSet.batches(ofSize: batchSize) {
@@ -51,10 +55,6 @@ public extension NeuralNetwork {
     }
 
     private func miniBatchTrain<C: Collection>(miniBatch: C, eta: Double) where C.Element == TrainingSet.TrainingData {
-        fillNeuronsRandom()
-        fillWeightsRandom()
-        fillBiasesRandom()
-        
         var nablas: [(Matrix<Double>, ColumnVector<Double>)] = []
 
         var delta = ColumnVector<Double>(length: 0)
@@ -85,73 +85,7 @@ public extension NeuralNetwork {
             biases[nablas.count - i - 1] -= nablas[i].1 / eta * Double(nablas.count)
         }
         
-        
-        
-        
-        /*
-        
-        var allNablas: [[(Matrix<Double>, ColumnVector<Double>)]] = []
-        
-        for (input, expectedOutput) in miniBatch {
-            let predictedOutput = predict(input: input)
-            var delta = 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput))
-            
-            let nablas: [(Matrix<Double>, ColumnVector<Double>)] = stride(from: networkInfo.hiddenLayers, through: 0, by: -1).map { layer in
-                let nabla_b = σ̇(weights[layer] • neurons[layer] + biases[layer]) * delta
-                let nabla_w = nabla_b • neurons[layer].ᵀ
-                delta = weights[layer].ᵀ • nabla_b
-                
-                return (nabla_w, nabla_b)
-            }
-            
-            allNablas.append(nablas)
-        }
-        
-        var summed = allNablas.reduce(into: [] as [(Matrix<Double>, ColumnVector<Double>)]) {
-            if $0.isEmpty {
-                $0 = $1
-            } else {
-                for i in 0 ..< $0.count {
-                    $0[i] = ($0[i].0 + $1[i].0, $0[i].1 + $1[i].1)
-                }
-            }
-        }
-        
-        summed = summed.reversed().map {
-            ($0.0 / Double(summed.count), $0.1 / Double(summed.count))
-        }
-        
-        print(summed)*/
-        
-        
-        
-        /*
-        var trainingResults = miniBatch.reduce(into: []) { (carry: inout Array<(MatrixMap<Double>, ColumnMap<Double>)>, arg1: TrainingSet.TrainingData) in
-            let (input, expectedOutput) = arg1
-            
-            let predictedOutput = predict(input: input)
-            var delta = 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput))
-            
-            for (index, layer) in stride(from: networkInfo.hiddenLayers, through: 0, by: -1).enumerated() {
-                let nabla_b = nonLinearityDerivative(weights[layer] * neurons[layer] + biases[layer]) * delta
-                let nabla_w = nabla_b * transpose(neurons[networkInfo.hiddenLayers])
-                delta = transpose(weights[networkInfo.hiddenLayers]) * nabla_b
-                
-                if carry.isEmpty {
-                    carry.append((1 * nabla_w, nabla_b))
-                } else {
-                    carry[index].0 = carry[index].0 + nabla_w
-                    carry[index].1 = carry[index].1 + nabla_b
-                }
-            }
-        }
-        
-        for i in 0 ..< trainingResults.count {
-            trainingResults[i].0 = trainingResults[i].0 / Double(trainingResults.count)
-            trainingResults[i].1 = trainingResults[i].1 / Double(trainingResults.count)
-        }
-        
-        print(trainingResults)*/
+        exit(0)
     }
     
 }
@@ -195,15 +129,12 @@ public extension NeuralNetwork {
         )
 
         input.enumerated().forEach { neurons[0][$0] = $1 }
-        (0 ... networkInfo.hiddenLayers).forEach(predictLayer)
+        
+        for layer in (0 ... networkInfo.hiddenLayers) {
+            neurons[layer + 1] <~ σ(weights[layer] • neurons[layer] + biases[layer])
+        }
 
         return Array(vector: neurons.last!)
-    }
-    
-    private func predictLayer(atIndex layer: Int) {
-        assert(layer >= 0 && layer <= networkInfo.hiddenLayers)
-
-        neurons[layer + 1] = ColumnVector(σ(weights[layer] • neurons[layer] + biases[layer]))
     }
     
 }
