@@ -1,26 +1,26 @@
 //
-//  MatrixOperation1.swift
+//  ColumnDotRowOperation.swift
 //  Matrices
 //
 //  Created by Andrea Tomarelli on 27/12/17.
 //
 
-public struct MatrixOperation1<T: Numeric> {
-  
-    private let accessor:   (Int, Int) -> T
+public struct ColumnDotRowOperation<T: Numeric> {
     
+    private let accessor:   (Int, Int) -> T
+
     private let nRows:      Int
     
     private let nColumns:   Int
     
     
-    init(lhs: Matrix<T>, rhs: T, operation: @escaping (T, T) -> T) {
-        self.accessor   = { operation(lhs[row: $0, column: $1], rhs) }
-        self.nRows      = lhs.nRows
-        self.nColumns   = lhs.nColumns
+    init(lhs: ColumnVector<T>, rhs: RowVector<T>) {
+        self.accessor   = { lhs[$0] * rhs[$1] }
+        self.nRows      = lhs.length
+        self.nColumns   = rhs.length
     }
     
-
+    
     func execute(into matrix: inout Matrix<T>)  {
         if matrix.nRows != nRows && matrix.nColumns != nColumns {
             matrix = Matrix(nRows: nRows, nColumns: nColumns)
