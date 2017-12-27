@@ -22,7 +22,7 @@ public struct ColumnDotRowOperation<T: Numeric> {
     
     
     func execute(into matrix: inout Matrix<T>)  {
-        if matrix.nRows != nRows && matrix.nColumns != nColumns {
+        if matrix.nRows != nRows || matrix.nColumns != nColumns {
             matrix = Matrix(nRows: nRows, nColumns: nColumns)
         }
         

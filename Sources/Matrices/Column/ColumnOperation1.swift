@@ -11,6 +11,11 @@ public struct ColumnOperation1<T: Numeric> {
     
     let length:             Int
     
+
+    public init(vector: ColumnOperation2<T>, operation: @escaping (T) -> T) {
+        self.accessor   = { operation(vector[$0]) }
+        self.length     = vector.length
+    }
     
     init(lhs: T, rhs: ColumnOperation2<T>, operation: @escaping (T, T) -> T) {
         self.accessor   = { operation(lhs, rhs[$0]) }

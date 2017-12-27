@@ -25,8 +25,8 @@ public struct TransposedMatrixDotColumnOperation<T: Numeric> {
             return result
         }
         
-        self.accessor = accessor
-        self.length = lhs.nRows
+        self.accessor   = accessor
+        self.length     = lhs.nRows
     }
     
     

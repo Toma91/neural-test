@@ -47,8 +47,8 @@ extension Storage {
 extension Storage {
     
     subscript(index: Int) -> T {
-        get { return buffer[index] }
-        set { buffer[index] = newValue }
+        @inline(__always) get { return buffer[index] }
+        @inline(__always) set { buffer[index] = newValue }
     }
     
 }

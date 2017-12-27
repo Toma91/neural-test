@@ -8,6 +8,8 @@
 import Darwin.C
 import Matrices
 
+import Foundation
+
 public class NeuralNetwork {
 
     public let networkInfo: NetworkInfo
@@ -55,6 +57,8 @@ public extension NeuralNetwork {
     }
 
     private func miniBatchTrain<C: Collection>(miniBatch: C, eta: Double) where C.Element == TrainingSet.TrainingData {
+        let __d = Date()
+        
         var nablas_w = weights.reversed().map { Matrix<Double>.zeros(nRows: $0.nRows, nColumns: $0.nColumns) }
         var nablas_b = biases.reversed().map { ColumnVector<Double>.zeros(length: $0.length) }
 
@@ -84,6 +88,9 @@ public extension NeuralNetwork {
         for i in 0 ..< nablas_b.count {
             biases[nablas_b.count - i - 1] -= nablas_b[i] / (eta * Double(nablas_b.count))
         }
+        
+        print(Date().timeIntervalSince(__d))
+        exit(0)
     }
     
 }
@@ -139,16 +146,16 @@ public extension NeuralNetwork {
 
 private extension NeuralNetwork {
     
-    func σ(_ v: ColumnOperation2<Double>) -> ColumnOperation1<Double> {fatalError()
-/*        return ColumnOperation1(vector: v) {
+    func σ(_ v: ColumnOperation2<Double>) -> ColumnOperation1<Double> {
+        return ColumnOperation1(vector: v) {
             1 / (1 + exp($0))
         }
-*/    }
+    }
     
-    func σ̇(_ v: ColumnOperation2<Double>) -> ColumnOperation1<Double> {fatalError()
-/*        return ColumnOperation1(v1: v) {
+    func σ̇(_ v: ColumnOperation2<Double>) -> ColumnOperation1<Double> {
+        return ColumnOperation1(vector: v) {
             exp($0) / ((1 + exp($0)) * (1 + exp($0)))
         }
-*/    }
+    }
 
 }
