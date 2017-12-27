@@ -7,18 +7,19 @@
 
 infix operator <~: AssignmentPrecedence
 
+
 public func <~<T>(lhs: inout ColumnVector<T>, rhs: ColumnOperation1<T>) {
-    fatalError()
+    rhs.execute(into: &lhs)
 }
 
 public func <~<T>(lhs: inout ColumnVector<T>, rhs: ColumnOperation2<T>) {
-    fatalError()
+    rhs.execute(into: &lhs)
 }
 
 public func <~<T>(lhs: inout Matrix<T>, rhs: ColumnDotRowOperation<T>) {
-    fatalError()
+    rhs.execute(into: &lhs)
 }
 
-public func <~<T>(lhs: inout ColumnVector<T>, rhs: MatrixDotColumnOperation<T>) {
-    fatalError()
+public func <~<T>(lhs: inout ColumnVector<T>, rhs: TransposedMatrixDotColumnOperation<T>) {
+    rhs.execute(into: &lhs)
 }

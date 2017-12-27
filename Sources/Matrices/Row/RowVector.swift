@@ -2,24 +2,39 @@
 //  RowVector.swift
 //  Matrices
 //
-//  Created by Andrea Tomarelli on 14/12/17.
+//  Created by Andrea Tomarelli on 26/12/17.
 //
 
 public struct RowVector<T: Numeric> {
     
-    private var storage:    Storage<T>
-
-    public let length:      Int
-
+    private var storage: Storage<T>
+    
+    
+    public var length: Int { return storage.count }
+    
     
     init(storage: Storage<T>) {
-        self.storage    = storage
-        self.length     = storage.count
+        self.storage = storage
     }
-    
+
 }
 
 public extension RowVector {
+    
+    static func zeros(length: Int) -> RowVector<T> {
+        let storage = Storage<T>(size: length)
+        for i in 0 ..< length { storage[i] = 0 }
+        
+        return RowVector<T>(storage: storage)
+    }
+    
+    
+    var ᵀ: ColumnVector<T> { return ColumnVector(storage: storage) }
+    
+    
+    init() {
+        self.init(storage: Storage(size: 0))
+    }
     
     init(length: Int) {
         self.init(storage: Storage(size: length))
@@ -28,19 +43,7 @@ public extension RowVector {
     init(elements: [T]) {
         self.init(storage: Storage(elements: elements))
     }
-    
-    init(_ elements: T...) {
-        self.init(elements: elements)
-    }
 
-}
-
-public extension RowVector {
-
-    var ᵀ: ColumnVector<T> {
-        return ColumnVector(storage: storage)
-    }
-    
 }
 
 public extension RowVector {
@@ -53,7 +56,7 @@ public extension RowVector {
         }
         set {
             precondition(index >= 0 && index < length)
-            
+
             if !isKnownUniquelyReferenced(&storage) {
                 storage = Storage(copying: storage)
             }

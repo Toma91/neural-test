@@ -1,6 +1,6 @@
 //
 //  Matrix.swift
-//  learnPackageDescription
+//  Matrices
 //
 //  Created by Andrea Tomarelli on 12/12/17.
 //
@@ -52,7 +52,22 @@ public extension Matrix {
     init() {
         self.init(storage: Storage(size: 0), nRows: 0, nColumns: 0)
     }
+    
+}
 
+extension Matrix {
+
+    mutating func add(_ other: Matrix<T>) {
+        precondition(other.nRows == nRows)
+        precondition(other.nColumns == nColumns)
+
+        if !isKnownUniquelyReferenced(&storage) {
+            storage = Storage(copying: storage)
+        }
+        
+        for i in 0 ..< storage.count { storage[i] += other.storage[i] }
+    }
+    
 }
 
 public extension Matrix {
