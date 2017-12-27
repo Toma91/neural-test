@@ -14,12 +14,8 @@ public struct Matrix<T: Numeric> {
     public let nColumns:    Int
     
     
-    public init(nRows: Int, nColumns: Int, elements: T...) {
-        precondition(elements.isEmpty || elements.count == nRows * nColumns)
-        
-        let storage = elements.isEmpty
-            ? Storage(size: nRows * nColumns)
-            : Storage(elements: elements)
+    init(storage: Storage<T>, nRows: Int, nColumns: Int) {
+        precondition(storage.count == nRows * nColumns)
         
         self.storage    = storage
         self.nRows      = nRows
@@ -30,10 +26,33 @@ public struct Matrix<T: Numeric> {
 
 public extension Matrix {
     
+    static func zeros(nRows: Int, nColumns: Int) -> Matrix<T> {
+        let storage = Storage<T>(size: nRows * nColumns)
+        for i in 0 ..< nRows * nColumns { storage[i] = 0 }
+        
+        return Matrix<T>(storage: storage, nRows: nRows, nColumns: nColumns)
+    }
+    
+    
     var ᵀ: TransposedMatrix<T> {
         return TransposedMatrix(transposing: self)
     }
     
+    
+    init(nRows: Int, nColumns: Int, elements: T...) {
+        precondition(elements.isEmpty || elements.count == nRows * nColumns)
+        
+        let storage = elements.isEmpty
+            ? Storage(size: nRows * nColumns)
+            : Storage(elements: elements)
+        
+        self.init(storage: storage, nRows: nRows, nColumns: nColumns)
+    }
+    
+    init() {
+        self.init(storage: Storage(size: 0), nRows: 0, nColumns: 0)
+    }
+
 }
 
 public extension Matrix {

@@ -7,17 +7,16 @@
 
 public struct TransposedMatrix<T: Numeric> {
    
-    private let matrix:     Matrix<T>
+    private let matrix: Matrix<T>
     
-    public let nRows:       Int
     
-    public let nColumns:    Int
+    public var nRows:       Int { return matrix.nColumns }
+    
+    public var nColumns:    Int { return matrix.nRows }
     
     
     init(transposing matrix: Matrix<T>) {
-        self.matrix     = matrix
-        self.nRows      = matrix.nColumns
-        self.nColumns   = matrix.nRows
+        self.matrix = matrix
     }
     
 }
