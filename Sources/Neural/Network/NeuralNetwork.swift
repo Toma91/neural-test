@@ -8,9 +8,7 @@
 import Darwin.C
 import Matrices
 
-import Cocoa
-
-public class NeuralNetwork {
+public class NeuralNetwork: Codable {
 
     public let networkInfo: NetworkInfo
 
@@ -40,6 +38,107 @@ public class NeuralNetwork {
         self.biases         = biases
     }
     
+    
+    private enum CodingKeys: String, CodingKey {
+        
+        case networkInfo
+        case neurons
+        case weights
+        case biases
+
+    }
+    
+    private enum NetworkInfoKeys: String, CodingKey {
+    
+        case inputSize
+        case hiddenLayers
+        case hiddenLayerSize
+        case outputSize
+        
+    }
+    
+    public required init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        let networkInfoValues = try values.nestedContainer(keyedBy: NetworkInfoKeys.self, forKey: .networkInfo)
+        
+        self.networkInfo = NetworkInfo(
+            inputSize: try networkInfoValues.decode(Int.self, forKey: .inputSize),
+            hiddenLayers: try networkInfoValues.decode(Int.self, forKey: .hiddenLayers),
+            hiddenLayerSize: try networkInfoValues.decode(Int.self, forKey: .hiddenLayerSize),
+            outputSize: try networkInfoValues.decode(Int.self, forKey: .outputSize)
+        )
+        
+        self.neurons = try values.decode([[Double]].self, forKey: .neurons).map {
+            ColumnVector<Double>(elements: $0)
+        }
+        
+        self.weights = try values.decode([[Double]].self, forKey: .weights).map {
+            var result = Matrix<Double>(nRows: Int($0[0]), nColumns: Int($0[1]))
+            var index = 2
+            
+            for r in 0 ..< result.nRows {
+                for c in 0 ..< result.nColumns {
+                    result[row: r, column: c] = $0[index]
+                    index += 1
+                }
+            }
+            
+            return result
+        }
+        
+        self.biases = try values.decode([[Double]].self, forKey: .biases).map {
+            ColumnVector<Double>(elements: $0)
+        }
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        var networkInfoContainer = container.nestedContainer(keyedBy: NetworkInfoKeys.self, forKey: .networkInfo)
+
+        try networkInfoContainer.encode(networkInfo.inputSize,          forKey: .inputSize)
+        try networkInfoContainer.encode(networkInfo.hiddenLayers,       forKey: .hiddenLayers)
+        try networkInfoContainer.encode(networkInfo.hiddenLayerSize,    forKey: .hiddenLayerSize)
+        try networkInfoContainer.encode(networkInfo.outputSize,         forKey: .outputSize)
+
+        let neurons = self.neurons.map { (vector) -> [Double] in
+            var result: [Double] = []
+            
+            for i in 0 ..< vector.length {
+                result.append(vector[i])
+            }
+            
+            return result
+        }
+        
+        try container.encode(neurons, forKey: .neurons)
+        
+        let weights = self.weights.map { (matrix) -> [Double] in
+            var result: [Double] = [Double(matrix.nRows), Double(matrix.nColumns)]
+            
+            for r in 0 ..< matrix.nRows {
+                for c in 0 ..< matrix.nColumns {
+                    result.append(matrix[row: r, column: c])
+                }
+            }
+            
+            return result
+        }
+        
+        try container.encode(weights, forKey: .weights)
+    
+        let biases = self.biases.map { (vector) -> [Double] in
+            var result: [Double] = []
+            
+            for i in 0 ..< vector.length {
+                result.append(vector[i])
+            }
+            
+            return result
+        }
+        
+        try container.encode(biases, forKey: .biases)
+    }
+    
 }
 
 public extension NeuralNetwork {
@@ -56,7 +155,7 @@ public extension NeuralNetwork {
             miniBatchTrain(miniBatch: miniBatch, eta: eta)
         }
         
-        print("***  weights  ***")
+/*        print("***  weights  ***")
         
         for (i, w) in weights.enumerated() {
             let img = NSImage(size: NSSize(width: w.nColumns, height: w.nRows))
@@ -98,7 +197,7 @@ public extension NeuralNetwork {
             bitmapRep.size = img.size
             let pngData = bitmapRep.representation(using: .png, properties: [:])!
             try! pngData.write(to: URL(fileURLWithPath: "/Users/andrea/Desktop/b_\(i).png"))
-        }
+        }*/
     }
 
     
@@ -165,7 +264,7 @@ private extension NeuralNetwork {
             }
         }
     }
-
+    
 }
 
 public extension NeuralNetwork {
@@ -176,11 +275,15 @@ public extension NeuralNetwork {
             "Wrong input size, expected \(networkInfo.inputSize), got \(input.count)"
         )
 
+        print("before", neurons.suffix(from: 1).map({ v in (0 ..< v.length).map({ v[$0] }) }))
+        
         input.enumerated().forEach { neurons[0][$0] = $1 }
         
         for layer in (0 ... networkInfo.hiddenLayers) {
             neurons[layer + 1] <~ σ(weights[layer] • neurons[layer] + biases[layer])
         }
+
+        print("after", neurons.suffix(from: 1).map({ v in (0 ..< v.length).map({ v[$0] }) }))
 
         return Array(vector: neurons.last!)
     }

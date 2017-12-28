@@ -84,20 +84,35 @@ guard let fl = IdxFile(path: CommandLine.arguments[2]) else {
     exit(0)
 }
 
-let network = NeuralNetwork(
-    networkInfo: NetworkInfo(
-        inputSize: fi.dimensions.suffix(from: 1).reduce(1, *),
-        hiddenLayers: 2,
-        hiddenLayerSize: 16,
-        outputSize: 10
+let zwitch = false
+let network: NeuralNetwork
+
+if zwitch {
+    network = NeuralNetwork(
+        networkInfo: NetworkInfo(
+            inputSize: fi.dimensions.suffix(from: 1).reduce(1, *),
+            hiddenLayers: 2,
+            hiddenLayerSize: 16,
+            outputSize: 10
+        )
     )
-)
+    
+    let set = TrSet(fi: fi, fl: fl)
+    
+    let d = Date()
+    network.train(withSet: set, batchSize: 1000, eta: 1)
+    print("training time (s):", Date().timeIntervalSince(d))
+    
+    let data = try PropertyListEncoder().encode(network)
+    try data.write(to: URL(fileURLWithPath: "/Users/andrea/Desktop/network.structure"))
+} else {
+    let data = try Data(contentsOf: URL(fileURLWithPath: "/Users/andrea/Desktop/network.structure"))
+    network = try PropertyListDecoder().decode(NeuralNetwork.self, from: data)
+}
 
-let set = TrSet(fi: fi, fl: fl)
+print(network.predict(input: fi[0].map({ Double($0) / 255 })))
+print(network.predict(input: fi[101].map({ Double($0) / 255 })))
 
-let d = Date()
-network.train(withSet: set, batchSize: 1000, eta: 1)
-print("training time (s):", Date().timeIntervalSince(d))
 print(network.predict(input: fi[0].map({ Double($0) / 255 })))
 
 
