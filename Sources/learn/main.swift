@@ -84,14 +84,14 @@ guard let fl = IdxFile(path: CommandLine.arguments[2]) else {
     exit(0)
 }
 
-let learn = true
+let learn = false
 let network: NeuralNetwork
 
 if learn {
     network = NeuralNetwork(
         networkInfo: NetworkInfo(
             inputSize: fi.dimensions.suffix(from: 1).reduce(1, *),
-            hiddenLayers: 2,
+            hiddenLayers: 2 * 0,
             hiddenLayerSize: 16,
             outputSize: 10
         )
@@ -100,7 +100,7 @@ if learn {
     let set = TrSet(fi: fi, fl: fl)
     
     let d = Date()
-    network.train(withSet: set, batchSize: 1000, eta: 1)
+    network.train(withSet: set, epochs: 5, batchSize: 1000, eta: 1)
     print("training time (s):", Date().timeIntervalSince(d))
     
     let data = try PropertyListEncoder().encode(network)
@@ -114,5 +114,28 @@ print(network.predict(input: fi[0].map({ Double($0) / 255 })))
 print(network.predict(input: fi[101].map({ Double($0) / 255 })))
 
 print(network.predict(input: fi[0].map({ Double($0) / 255 })))
+
+
+
+
+
+let test_i = IdxFile(path: "/Users/andrea/Desktop/learn/Data/t10k-images.idx3-ubyte")!
+let test_l = IdxFile(path: "/Users/andrea/Desktop/learn/Data/t10k-labels.idx1-ubyte")!
+
+var errors = 0
+
+for i in 0 ..< 10_000 {
+    let _pred = network.predict(input: test_i[i].map({ Double($0) / 255 }))
+    let pred = _pred.enumerated().max(by: { $1.1 > $0.1 })!.offset
+    let _exp = test_l[i][0]
+    
+    if pred != _exp {
+        errors += 1
+        print(i, pred, _exp)
+    }
+}
+
+print("errors:", errors)
+
 
 

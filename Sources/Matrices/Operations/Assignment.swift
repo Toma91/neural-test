@@ -42,3 +42,11 @@ public func <~<T>(lhs: inout ColumnVector<T>, rhs: TransposedMatrixDotColumnOper
     
     for i in 0 ..< rhs.length { lhs[i] = rhs[i] }
 }
+
+public func <~<T>(lhs: inout ColumnVector<T>, rhs: ColumnVector<T>) {
+    if lhs.length != rhs.length {
+        lhs = ColumnVector(length: rhs.length)
+    }
+    
+    for i in 0 ..< rhs.length { lhs[i] = rhs[i] }
+}

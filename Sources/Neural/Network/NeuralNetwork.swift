@@ -145,15 +145,28 @@ public class NeuralNetwork: Codable {
 
 public extension NeuralNetwork {
         
-    func train<TS: TrainingSet>(withSet trainingSet: TS, batchSize: Int, eta: Double) {
+    func train<TS: TrainingSet>(withSet trainingSet: TS, epochs: Int, batchSize: Int, eta: Double) {
         fillWeightsRandom()
         fillBiasesRandom()
 
         trainingSet.shuffle()
 
-        for (i, miniBatch) in trainingSet.batches(ofSize: batchSize).enumerated() {
-            print("batch \(i)")
-            miniBatchTrain(miniBatch: miniBatch, eta: eta)
+        for e in 0 ..< epochs {
+            print("epoch \(e)")
+
+            for (i, miniBatch) in trainingSet.batches(ofSize: batchSize).enumerated() {
+                print("batch \(i)")
+
+                let itm = miniBatch.first!
+                
+                let predictedOutputBefore = predict(input: itm.input)
+                print("Error (before):", zip(predictedOutputBefore, itm.expectedOutput).map(-).map({ $0 * $0 }).reduce(0, +))
+
+                miniBatchTrain(miniBatch: miniBatch, eta: eta)
+
+                let predictedOutputAfter = predict(input: itm.input)
+                print("Error (after):", zip(predictedOutputAfter, itm.expectedOutput).map(-).map({ $0 * $0 }).reduce(0, +))
+            }
         }
 
         
@@ -231,13 +244,20 @@ public extension NeuralNetwork {
         
         for (input, expectedOutput) in miniBatch {
             let predictedOutput = predict(input: input)
+            
+            let l = networkInfo.hiddenLayers
 
-            delta <~ 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput))
+            delta <~ ColumnVector(elements: zip(predictedOutput, expectedOutput).map(-)) * σ̇(weights[l] • neurons[l] + biases[l])
+            nabla_w <~ delta • neurons[l].ᵀ
+            nabla_b <~ delta
+            
+            nablas_w[0] += nabla_w
+            nablas_b[0] += nabla_b
 
-            for (index, layer) in stride(from: networkInfo.hiddenLayers, through: 0, by: -1).enumerated() {
-                nabla_b <~ σ̇(weights[layer] • neurons[layer] + biases[layer]) * delta
-                nabla_w <~ nabla_b • neurons[layer].ᵀ
-                delta <~ weights[layer].ᵀ • nabla_b
+            for (index, layer) in stride(from: networkInfo.hiddenLayers, through: 0, by: -1).enumerated().dropFirst() {
+                delta <~ σ̇(weights[layer] • neurons[layer] + biases[layer]) * (weights[layer + 1].ᵀ • delta)
+                nabla_w <~ delta • neurons[layer].ᵀ
+                nabla_b <~ delta
 
                 nablas_w[index] += nabla_w
                 nablas_b[index] += nabla_b
