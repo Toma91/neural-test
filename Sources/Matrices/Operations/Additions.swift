@@ -10,9 +10,17 @@ public func +<T>(lhs: MatrixDotColumnOperation<T>, rhs: ColumnVector<T>) -> Colu
 }
 
 public func +=<T>(lhs: inout Matrix<T>, rhs: Matrix<T>) {
-    lhs.add(rhs)
+    precondition(lhs.nRows == rhs.nRows && lhs.nColumns == rhs.nColumns)
+    
+    for r in 0 ..< lhs.nRows {
+        for c in 0 ..< lhs.nColumns {
+            lhs[row: r, column: c] += rhs[row: r, column: c]
+        }
+    }    
 }
 
 public func +=<T>(lhs: inout ColumnVector<T>, rhs: ColumnVector<T>) {
-    lhs.add(rhs)
+    precondition(lhs.length == rhs.length)
+    
+    for i in 0 ..< lhs.length { lhs[i] += rhs[i] }
 }

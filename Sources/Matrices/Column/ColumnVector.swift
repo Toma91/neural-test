@@ -43,21 +43,11 @@ public extension ColumnVector {
     init(elements: [T]) {
         self.init(storage: Storage(elements: elements))
     }
-
-}
-
-extension ColumnVector {
     
-    mutating func add(_ other: ColumnVector<T>) {
-        precondition(other.length == length)
-
-        if !isKnownUniquelyReferenced(&storage) {
-            storage = Storage(copying: storage)
-        }
-        
-        for i in 0 ..< storage.count { storage[i] += other.storage[i] }
+    init(_ elements: T...) {
+        self.init(elements: elements)
     }
-    
+
 }
 
 public extension ColumnVector {

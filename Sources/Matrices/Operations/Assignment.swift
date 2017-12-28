@@ -7,7 +7,6 @@
 
 infix operator <~: AssignmentPrecedence
 
-
 public func <~<T>(lhs: inout ColumnVector<T>, rhs: ColumnOperation1<T>) {
     if lhs.length != rhs.length {
         lhs = ColumnVector(length: rhs.length)

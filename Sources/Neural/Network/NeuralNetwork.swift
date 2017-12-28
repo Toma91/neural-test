@@ -143,7 +143,7 @@ private extension NeuralNetwork {
     func fillNeuronsRandom() {
         for i in 0 ..< neurons.count {
             for j in 0 ..< neurons[i].length {
-                neurons[i][j] = Double(arc4random()) / Double(UInt32.max) * 0
+                neurons[i][j] = Double(arc4random()) / Double(UInt32.max)
             }
         }
     }

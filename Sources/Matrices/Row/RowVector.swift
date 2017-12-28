@@ -43,6 +43,10 @@ public extension RowVector {
     init(elements: [T]) {
         self.init(storage: Storage(elements: elements))
     }
+    
+    init(_ elements: T...) {
+        self.init(elements: elements)
+    }
 
 }
 

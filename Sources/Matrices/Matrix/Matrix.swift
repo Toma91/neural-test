@@ -55,21 +55,6 @@ public extension Matrix {
     
 }
 
-extension Matrix {
-
-    mutating func add(_ other: Matrix<T>) {
-        precondition(other.nRows == nRows)
-        precondition(other.nColumns == nColumns)
-
-        if !isKnownUniquelyReferenced(&storage) {
-            storage = Storage(copying: storage)
-        }
-        
-        for i in 0 ..< storage.count { storage[i] += other.storage[i] }
-    }
-    
-}
-
 public extension Matrix {
 
     subscript(row row: Int, column column: Int) -> T {

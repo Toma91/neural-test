@@ -9,7 +9,7 @@ public struct ColumnOperation1<T: Numeric> {
 
     private let accessor:   (Int) -> T
     
-    let length:             Int
+    public let length:      Int
     
 
     public init(vector: ColumnOperation2<T>, operation: @escaping (T) -> T) {

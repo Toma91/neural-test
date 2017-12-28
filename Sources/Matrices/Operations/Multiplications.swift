@@ -16,3 +16,7 @@ public func *<T>(lhs: ColumnOperation1<T>, rhs: ColumnVector<T>) -> ColumnOperat
 public func *<T>(lhs: Matrix<T>, rhs: T) -> MatrixOperation1<T> {
     return MatrixOperation1(lhs: lhs, rhs: rhs, operation: *)
 }
+
+public func *<T>(lhs: ColumnVector<T>, rhs: T) -> ColumnOperation1<T> {
+    return ColumnOperation1(lhs: lhs, rhs: rhs, operation: *)
+}
