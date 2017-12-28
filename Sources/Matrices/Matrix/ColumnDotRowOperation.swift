@@ -9,9 +9,9 @@ public struct ColumnDotRowOperation<T: Numeric> {
     
     private let accessor:   (Int, Int) -> T
 
-    private let nRows:      Int
+    let nRows:              Int
     
-    private let nColumns:   Int
+    let nColumns:           Int
     
     
     init(lhs: ColumnVector<T>, rhs: RowVector<T>) {
@@ -21,16 +21,8 @@ public struct ColumnDotRowOperation<T: Numeric> {
     }
     
     
-    func execute(into matrix: inout Matrix<T>)  {
-        if matrix.nRows != nRows || matrix.nColumns != nColumns {
-            matrix = Matrix(nRows: nRows, nColumns: nColumns)
-        }
-        
-        for r in 0 ..< nRows {
-            for c in 0 ..< nColumns {
-                matrix[row: r, column: c] = accessor(r, c)
-            }
-        }
+    subscript(row row: Int, column column: Int) -> T {
+        get { return accessor(row, column) }
     }
     
 }

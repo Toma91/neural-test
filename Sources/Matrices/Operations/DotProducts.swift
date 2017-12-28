@@ -18,3 +18,7 @@ public func •<T>(lhs: ColumnVector<T>, rhs: RowVector<T>) -> ColumnDotRowOpera
 public func •<T>(lhs: TransposedMatrix<T>, rhs: ColumnVector<T>) -> TransposedMatrixDotColumnOperation<T> {
     return TransposedMatrixDotColumnOperation(lhs: lhs, rhs: rhs)
 }
+
+public func *<T>(lhs: ColumnVector<T>, rhs: T) -> ColumnOperation1<T> {
+    return ColumnOperation1(lhs: lhs, rhs: rhs, operation: *)
+}

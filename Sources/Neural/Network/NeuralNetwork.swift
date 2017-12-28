@@ -8,7 +8,7 @@
 import Darwin.C
 import Matrices
 
-import Foundation
+import Cocoa
 
 public class NeuralNetwork {
 
@@ -50,15 +50,59 @@ public extension NeuralNetwork {
         fillBiasesRandom()
 
         trainingSet.shuffle()
-                
-        for miniBatch in trainingSet.batches(ofSize: batchSize) {
+
+        for (i, miniBatch) in trainingSet.batches(ofSize: batchSize).enumerated() {
+            print("batch \(i)")
             miniBatchTrain(miniBatch: miniBatch, eta: eta)
-        }        
+        }
+        
+        print("***  weights  ***")
+        
+        for (i, w) in weights.enumerated() {
+            let img = NSImage(size: NSSize(width: w.nColumns, height: w.nRows))
+            
+            img.lockFocus()
+            for r in 0 ..< w.nRows {
+                for c in 0 ..< w.nColumns {
+                    print(i, w[row: r, column: c])
+                    let col = CGFloat(max(0,  min(w[row: r, column: c], 1)))
+                    NSColor(white: col, alpha: 1.0).set()
+                    NSBezierPath(rect: NSRect(x: c, y: r, width: 1, height: 1)).fill()
+                }
+            }
+            img.unlockFocus()
+            
+            let cgRef = img.cgImage(forProposedRect: nil, context: nil, hints: nil)!
+            let bitmapRep = NSBitmapImageRep(cgImage: cgRef)
+            bitmapRep.size = img.size
+            let pngData = bitmapRep.representation(using: .png, properties: [:])!
+            try! pngData.write(to: URL(fileURLWithPath: "/Users/andrea/Desktop/w_\(i).png"))
+        }
+        
+        print("***  biases  ***")
+
+        for (i, b) in biases.enumerated() {
+            let img = NSImage(size: NSSize(width: 1, height: b.length))
+            
+            img.lockFocus()
+            for j in 0 ..< b.length {
+                print(i, b[j])
+                let col = CGFloat(max(0,  min(b[j], 1)))
+                NSColor(white: col, alpha: 1.0).set()
+                NSBezierPath(rect: NSRect(x: 0, y: j, width: 1, height: 1)).fill()
+            }
+            img.unlockFocus()
+            
+            let cgRef = img.cgImage(forProposedRect: nil, context: nil, hints: nil)!
+            let bitmapRep = NSBitmapImageRep(cgImage: cgRef)
+            bitmapRep.size = img.size
+            let pngData = bitmapRep.representation(using: .png, properties: [:])!
+            try! pngData.write(to: URL(fileURLWithPath: "/Users/andrea/Desktop/b_\(i).png"))
+        }
     }
 
-    private func miniBatchTrain<C: Collection>(miniBatch: C, eta: Double) where C.Element == TrainingSet.TrainingData {
-        let __d = Date()
-        
+    
+    private func miniBatchTrain<C: Collection>(miniBatch: C, eta: Double) where C.Element == TrainingSet.TrainingData, C.IndexDistance == Int {
         var nablas_w = weights.reversed().map { Matrix<Double>.zeros(nRows: $0.nRows, nColumns: $0.nColumns) }
         var nablas_b = biases.reversed().map { ColumnVector<Double>.zeros(length: $0.length) }
 
@@ -68,7 +112,7 @@ public extension NeuralNetwork {
         
         for (input, expectedOutput) in miniBatch {
             let predictedOutput = predict(input: input)
-            
+
             delta <~ 2 * (ColumnVector(elements: predictedOutput) - ColumnVector(elements: expectedOutput))
 
             for (index, layer) in stride(from: networkInfo.hiddenLayers, through: 0, by: -1).enumerated() {
@@ -81,16 +125,15 @@ public extension NeuralNetwork {
             }
         }
         
+        let len = Double(miniBatch.count)
+
         for i in 0 ..< nablas_w.count {
-            weights[nablas_w.count - i - 1] -= nablas_w[i] / (eta * Double(nablas_w.count))
+            weights[nablas_w.count - i - 1] -= nablas_w[i] * (eta / len)
         }
         
         for i in 0 ..< nablas_b.count {
-            biases[nablas_b.count - i - 1] -= nablas_b[i] / (eta * Double(nablas_b.count))
+            biases[nablas_b.count - i - 1] -= nablas_b[i] * (eta / len)
         }
-        
-        print(Date().timeIntervalSince(__d))
-        exit(0)
     }
     
 }

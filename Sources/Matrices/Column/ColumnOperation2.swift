@@ -34,15 +34,6 @@ public struct ColumnOperation2<T: Numeric> {
     }
 
     
-    func execute(into vector: inout ColumnVector<T>)  {
-        if vector.length != length {
-            vector = ColumnVector(length: length)
-        }
-        
-        for i in 0 ..< length { vector[i] = accessor(i) }
-    }
-    
-    
     subscript(index: Int) -> T {
         get { return accessor(index) }
     }

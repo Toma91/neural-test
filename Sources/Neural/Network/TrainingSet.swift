@@ -9,10 +9,10 @@ public protocol TrainingSet {
     
     typealias TrainingData = (input: [Double], expectedOutput: [Double])
     
-    associatedtype MiniBatch: Collection where MiniBatch.Element == TrainingData
+    associatedtype MiniBatch: Collection where MiniBatch.Element == TrainingData, MiniBatch.IndexDistance == Int
 
     associatedtype MiniBatchSequence: Sequence where MiniBatchSequence.Element == MiniBatch
-
+    
     func shuffle()
 
     func batches(ofSize size: Int) -> MiniBatchSequence
