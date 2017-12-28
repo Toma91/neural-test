@@ -8,6 +8,8 @@
 import Darwin.C
 import Matrices
 
+import Cocoa
+
 public class NeuralNetwork: Codable {
 
     public let networkInfo: NetworkInfo
@@ -144,7 +146,6 @@ public class NeuralNetwork: Codable {
 public extension NeuralNetwork {
         
     func train<TS: TrainingSet>(withSet trainingSet: TS, batchSize: Int, eta: Double) {
-        fillNeuronsRandom()
         fillWeightsRandom()
         fillBiasesRandom()
 
@@ -154,17 +155,30 @@ public extension NeuralNetwork {
             print("batch \(i)")
             miniBatchTrain(miniBatch: miniBatch, eta: eta)
         }
+
         
-/*        print("***  weights  ***")
+        // ******* images
+        
         
         for (i, w) in weights.enumerated() {
             let img = NSImage(size: NSSize(width: w.nColumns, height: w.nRows))
             
+            var _max: Double? = nil
+
+            for r in 0 ..< w.nRows {
+                for c in 0 ..< w.nColumns {
+                    if _max == nil {
+                        _max = abs(w[row: r, column: c])
+                    } else if abs(w[row: r, column: c]) > _max! {
+                        _max = abs(w[row: r, column: c])
+                    }
+                }
+            }
+            
             img.lockFocus()
             for r in 0 ..< w.nRows {
                 for c in 0 ..< w.nColumns {
-                    print(i, w[row: r, column: c])
-                    let col = CGFloat(max(0,  min(w[row: r, column: c], 1)))
+                    let col = CGFloat(abs(w[row: r, column: c]) / _max!)
                     NSColor(white: col, alpha: 1.0).set()
                     NSBezierPath(rect: NSRect(x: c, y: r, width: 1, height: 1)).fill()
                 }
@@ -177,16 +191,23 @@ public extension NeuralNetwork {
             let pngData = bitmapRep.representation(using: .png, properties: [:])!
             try! pngData.write(to: URL(fileURLWithPath: "/Users/andrea/Desktop/w_\(i).png"))
         }
-        
-        print("***  biases  ***")
 
         for (i, b) in biases.enumerated() {
             let img = NSImage(size: NSSize(width: 1, height: b.length))
             
+            var _max: Double? = nil
+            
+            for j in 0 ..< b.length {
+                if _max == nil {
+                    _max = abs(b[j])
+                } else if abs(b[j]) > _max! {
+                    _max = abs(b[j])
+                }
+            }
+            
             img.lockFocus()
             for j in 0 ..< b.length {
-                print(i, b[j])
-                let col = CGFloat(max(0,  min(b[j], 1)))
+                let col = CGFloat(abs(b[j]) / _max!)
                 NSColor(white: col, alpha: 1.0).set()
                 NSBezierPath(rect: NSRect(x: 0, y: j, width: 1, height: 1)).fill()
             }
@@ -197,9 +218,8 @@ public extension NeuralNetwork {
             bitmapRep.size = img.size
             let pngData = bitmapRep.representation(using: .png, properties: [:])!
             try! pngData.write(to: URL(fileURLWithPath: "/Users/andrea/Desktop/b_\(i).png"))
-        }*/
+        }
     }
-
     
     private func miniBatchTrain<C: Collection>(miniBatch: C, eta: Double) where C.Element == TrainingSet.TrainingData, C.IndexDistance == Int {
         var nablas_w = weights.reversed().map { Matrix<Double>.zeros(nRows: $0.nRows, nColumns: $0.nColumns) }
@@ -238,20 +258,20 @@ public extension NeuralNetwork {
 }
 
 private extension NeuralNetwork {
-    
-    func fillNeuronsRandom() {
-        for i in 0 ..< neurons.count {
-            for j in 0 ..< neurons[i].length {
-                neurons[i][j] = Double(arc4random()) / Double(UInt32.max)
-            }
-        }
+   
+    func random_uniform(min: Double, max: Double) -> Double {
+        let r = Double(arc4random()) / Double(UInt32.max)
+        
+        return (max - min) * r + min
     }
-
+    
     func fillWeightsRandom() {
         for i in 0 ..< weights.count {
+            let d = 1 / sqrt(Double(neurons[i].length))
+
             for j in 0 ..< weights[i].nRows {
                 for k in 0 ..< weights[i].nColumns {
-                    weights[i][row: j, column: k] = Double(arc4random()) / Double(UInt32.max)
+                    weights[i][row: j, column: k] = random_uniform(min: -d, max: d)
                 }
             }
         }
@@ -259,8 +279,10 @@ private extension NeuralNetwork {
     
     func fillBiasesRandom() {
         for i in 0 ..< biases.count {
+            let d = 1 / sqrt(Double(neurons[i].length))
+
             for j in 0 ..< biases[i].length {
-                biases[i][j] = Double(arc4random()) / Double(UInt32.max)
+                biases[i][j] = random_uniform(min: -d, max: d)
             }
         }
     }
@@ -269,21 +291,17 @@ private extension NeuralNetwork {
 
 public extension NeuralNetwork {
     
-    func predict(input: [Double]) -> [Double] {
+    func predict(input: [Double]) -> [Double] {        
         precondition(
             input.count == networkInfo.inputSize,
             "Wrong input size, expected \(networkInfo.inputSize), got \(input.count)"
         )
-
-        print("before", neurons.suffix(from: 1).map({ v in (0 ..< v.length).map({ v[$0] }) }))
         
         input.enumerated().forEach { neurons[0][$0] = $1 }
         
         for layer in (0 ... networkInfo.hiddenLayers) {
             neurons[layer + 1] <~ σ(weights[layer] • neurons[layer] + biases[layer])
         }
-
-        print("after", neurons.suffix(from: 1).map({ v in (0 ..< v.length).map({ v[$0] }) }))
 
         return Array(vector: neurons.last!)
     }
@@ -294,7 +312,7 @@ private extension NeuralNetwork {
     
     func σ(_ v: ColumnOperation2<Double>) -> ColumnOperation1<Double> {
         return ColumnOperation1(vector: v) {
-            1 / (1 + exp($0))
+            1 / (1 + exp(-$0))
         }
     }
     

@@ -84,10 +84,10 @@ guard let fl = IdxFile(path: CommandLine.arguments[2]) else {
     exit(0)
 }
 
-let zwitch = false
+let learn = true
 let network: NeuralNetwork
 
-if zwitch {
+if learn {
     network = NeuralNetwork(
         networkInfo: NetworkInfo(
             inputSize: fi.dimensions.suffix(from: 1).reduce(1, *),
