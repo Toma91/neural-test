@@ -35,6 +35,7 @@ class Predictor {
             exit(1)
         }
         
+        (0 ..< network.networkInfo.inputSize).forEach({ print(imageData[$0]) })
         let input = (0 ..< network.networkInfo.inputSize).map({ Double(imageData[$0]) / 255 })
         let prediction = network.predict(input: input)
         let number = prediction.enumerated().max(by: { $1.1 > $0.1 })!.offset

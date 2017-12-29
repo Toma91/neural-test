@@ -14,8 +14,14 @@ class Trainer {
     
     private let labels: IdxFile
     
+    let epochs:         Int
     
-    init?(imagesPath: String, labelsPath: String) {
+    let batchSize:      Int
+    
+    let eta:            Double
+
+    
+    init?(imagesPath: String, labelsPath: String, epochs: Int, batchSize: Int, eta: Double) {
         guard let images = IdxFile(path: imagesPath) else {
             print("Could not load idx image file")
             return nil
@@ -41,8 +47,11 @@ class Trainer {
             return nil
         }
 
-        self.images = images
-        self.labels = labels
+        self.images     = images
+        self.labels     = labels
+        self.epochs     = epochs
+        self.batchSize  = batchSize
+        self.eta        = eta
     }
     
     
@@ -59,7 +68,7 @@ class Trainer {
         let trainingSet = TrSet(fi: images, fl: labels)
         
         let d = Date()
-        network.train(withSet: trainingSet, epochs: 15, batchSize: 500, eta: 1)
+        network.train(withSet: trainingSet, epochs: epochs, batchSize: batchSize, eta: eta)
         print("training time (s):", Date().timeIntervalSince(d))
         
         let data = try PropertyListEncoder().encode(network)

@@ -15,13 +15,17 @@ guard CommandLine.arguments.count > 1 else {
 switch CommandLine.arguments[1] {
     
 case "train":
-    guard CommandLine.arguments.count == 6 else {
-        print("Usage: learn train <training images file> <training labels file> <test images file> <test labels file>")
+    guard CommandLine.arguments.count == 9 else {
+        print("Usage: learn train <training images file> <training labels file> <test images file> <test labels file> <epochs> <batch_size> <eta>")
         exit(0)
     }
 
+    let ep = Int(CommandLine.arguments[6]) ?? 1
+    let bs = Int(CommandLine.arguments[7]) ?? 1
+    let et = Double(CommandLine.arguments[8]) ?? 1
+
     guard
-        let trainer = Trainer(imagesPath: CommandLine.arguments[2], labelsPath: CommandLine.arguments[3]),
+        let trainer = Trainer(imagesPath: CommandLine.arguments[2], labelsPath: CommandLine.arguments[3], epochs: ep, batchSize: bs, eta: et),
         let tester = Tester(imagesPath: CommandLine.arguments[4], labelsPath: CommandLine.arguments[5])
         else { exit(1) }
 
