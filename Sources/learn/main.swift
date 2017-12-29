@@ -6,68 +6,48 @@
 //
 
 import Darwin.C
-import Matrices
-import Neural
 
-import Foundation
-
-struct TrSet: TrainingSet {
-    
-    public typealias MiniBatch = LazyMapRandomAccessCollection<CountableRange<Int>, TrainingData>
-    
-    public typealias MiniBatchSequence = LazyMapSequence<StrideTo<Int>, MiniBatch>
-    
-    
-    
-    public func shuffle() {
-        // NO OP
-    }
-    
-    public func batches(ofSize size: Int) -> MiniBatchSequence {
-        return stride(from: 0, to: fi.dimensions[0], by: size).lazy.map {
-            self.createMiniBatch(start: $0, size: size)
-        }
-    }
-    
-    private func createMiniBatch(start: Int, size: Int) -> MiniBatch {
-        let end = min(start.advanced(by: size), fi.dimensions[0])
-        
-        return (start ..< end).lazy.map(createTrainingData)
-    }
-    
-    private func createTrainingData(index: Int) -> TrainingData {
-        return (fi[index].map({ Double($0) / 255 }), fl[index].flatMap(createOutput))
-    }
-    
-    private func createOutput(a: UInt8) -> [Double] {
-        switch a {
-            
-        case 0: return [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        case 1: return [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
-        case 2: return [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
-        case 3: return [0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
-        case 4: return [0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
-        case 5: return [0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
-        case 6: return [0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
-        case 7: return [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]
-        case 8: return [0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
-        case 9: return [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-        
-        default: preconditionFailure()
-            
-        }
-    }
-    
-    private let fi: IdxFile
-
-    private let fl: IdxFile
-
-    init(fi: IdxFile, fl: IdxFile) {
-        self.fi = fi
-        self.fl = fl
-    }
-    
+guard CommandLine.arguments.count > 1 else {
+    print("Usage: learn <command> <arguments>...")
+    exit(0)
 }
+
+switch CommandLine.arguments[1] {
+    
+case "train":
+    guard CommandLine.arguments.count == 6 else {
+        print("Usage: learn train <training images file> <training labels file> <test images file> <test labels file>")
+        exit(0)
+    }
+
+    guard
+        let trainer = Trainer(imagesPath: CommandLine.arguments[2], labelsPath: CommandLine.arguments[3]),
+        let tester = Tester(imagesPath: CommandLine.arguments[4], labelsPath: CommandLine.arguments[5])
+        else { exit(1) }
+
+    let network = try trainer.train(outputFile: "/Users/andrea/Desktop/network.structure")
+    tester.test(network: network)
+    
+case "predict":
+    guard CommandLine.arguments.count == 4 else {
+        print("Usage: learn predict <network structure> <image>")
+        exit(0)
+    }
+
+    let predictor = try Predictor(networkPath: CommandLine.arguments[2])
+    predictor.predict(imagePath: CommandLine.arguments[3])
+    
+default:
+    print("Invalid command '\(CommandLine.arguments[1])'")
+    exit(1)
+
+}
+
+
+
+/*
+
+
 
 guard CommandLine.arguments.count == 3 else {
     print("Usage: learn <image file> <labels file>")
@@ -88,23 +68,8 @@ let learn = false
 let network: NeuralNetwork
 
 if learn {
-    network = NeuralNetwork(
-        networkInfo: NetworkInfo(
-            inputSize: fi.dimensions.suffix(from: 1).reduce(1, *),
-            hiddenLayers: 2 * 0,
-            hiddenLayerSize: 16,
-            outputSize: 10
-        )
-    )
-    
-    let set = TrSet(fi: fi, fl: fl)
-    
-    let d = Date()
-    network.train(withSet: set, epochs: 5, batchSize: 1000, eta: 1)
-    print("training time (s):", Date().timeIntervalSince(d))
-    
-    let data = try PropertyListEncoder().encode(network)
-    try data.write(to: URL(fileURLWithPath: "/Users/andrea/Desktop/network.structure"))
+    let trainer = Trainer(imagesPath: "", labelsPath: "fl")
+    network = (try trainer?.train(outputFile: "/Users/andrea/Desktop/network.structure"))!
 } else {
     let data = try Data(contentsOf: URL(fileURLWithPath: "/Users/andrea/Desktop/network.structure"))
     network = try PropertyListDecoder().decode(NeuralNetwork.self, from: data)
@@ -112,7 +77,7 @@ if learn {
 
 print(network.predict(input: fi[0].map({ Double($0) / 255 })))
 print(network.predict(input: fi[101].map({ Double($0) / 255 })))
-
+if ({ learn }()) { exit(0) }
 print(network.predict(input: fi[0].map({ Double($0) / 255 })))
 
 
@@ -137,5 +102,5 @@ for i in 0 ..< 10_000 {
 
 print("errors:", errors)
 
-
+*/
 
