@@ -59,8 +59,9 @@ class Trainer {
         let network = NeuralNetwork(
             networkInfo: NetworkInfo(
                 inputSize: images.dimensions.suffix(from: 1).reduce(1, *),
-                hiddenLayers: 1,
-                hiddenLayerSize: 16,
+                hiddenLayersSizes: [300, 100],
+                //hiddenLayers: 3,
+                //hiddenLayerSize: 10,
                 outputSize: 10
             )
         )

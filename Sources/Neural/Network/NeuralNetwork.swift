@@ -26,9 +26,9 @@ public class NeuralNetwork: Codable {
         var weights: [Matrix<Double>]       = []
         var biases: [ColumnVector<Double>]  = []
         
-        let hidden = Array(repeating: networkInfo.hiddenLayerSize, count: networkInfo.hiddenLayers)
+        //let hidden = Array(repeating: networkInfo.hiddenLayerSize, count: networkInfo.hiddenLayers)
         
-        zip([networkInfo.inputSize] + hidden, hidden + [networkInfo.outputSize]).forEach {
+        zip([networkInfo.inputSize] + networkInfo.hiddenLayersSizes, networkInfo.hiddenLayersSizes + [networkInfo.outputSize]).forEach {
             neurons.append(ColumnVector(length: $1))
             weights.append(Matrix(nRows: $1, nColumns: $0))
             biases.append(ColumnVector(length: $1))
@@ -53,8 +53,7 @@ public class NeuralNetwork: Codable {
     private enum NetworkInfoKeys: String, CodingKey {
     
         case inputSize
-        case hiddenLayers
-        case hiddenLayerSize
+        case hiddenLayersSizes
         case outputSize
         
     }
@@ -65,8 +64,9 @@ public class NeuralNetwork: Codable {
         
         self.networkInfo = NetworkInfo(
             inputSize: try networkInfoValues.decode(Int.self, forKey: .inputSize),
-            hiddenLayers: try networkInfoValues.decode(Int.self, forKey: .hiddenLayers),
-            hiddenLayerSize: try networkInfoValues.decode(Int.self, forKey: .hiddenLayerSize),
+            hiddenLayersSizes: try networkInfoValues.decode([Int].self, forKey: .hiddenLayersSizes),
+//            hiddenLayers: try networkInfoValues.decode(Int.self, forKey: .hiddenLayers),
+  //          hiddenLayerSize: try networkInfoValues.decode(Int.self, forKey: .hiddenLayerSize),
             outputSize: try networkInfoValues.decode(Int.self, forKey: .outputSize)
         )
         
@@ -98,8 +98,8 @@ public class NeuralNetwork: Codable {
         var networkInfoContainer = container.nestedContainer(keyedBy: NetworkInfoKeys.self, forKey: .networkInfo)
 
         try networkInfoContainer.encode(networkInfo.inputSize,          forKey: .inputSize)
-        try networkInfoContainer.encode(networkInfo.hiddenLayers,       forKey: .hiddenLayers)
-        try networkInfoContainer.encode(networkInfo.hiddenLayerSize,    forKey: .hiddenLayerSize)
+        try networkInfoContainer.encode(networkInfo.hiddenLayersSizes,  forKey: .hiddenLayersSizes)
+//        try networkInfoContainer.encode(networkInfo.hiddenLayerSize,    forKey: .hiddenLayerSize)
         try networkInfoContainer.encode(networkInfo.outputSize,         forKey: .outputSize)
 
         let neurons = self.neurons.map { (vector) -> [Double] in
@@ -245,7 +245,7 @@ public extension NeuralNetwork {
         for (input, expectedOutput) in miniBatch {
             let predictedOutput = predict(input: input)
             
-            let l = networkInfo.hiddenLayers
+            let l = networkInfo.hiddenLayersSizes.count
 
             delta <~ ColumnVector(elements: zip(predictedOutput, expectedOutput).map(-)) * σ̇(weights[l] • neurons[l] + biases[l])
             nabla_w <~ delta • neurons[l].ᵀ
@@ -254,7 +254,7 @@ public extension NeuralNetwork {
             nablas_w[0] += nabla_w
             nablas_b[0] += nabla_b
 
-            for (index, layer) in stride(from: networkInfo.hiddenLayers, through: 0, by: -1).enumerated().dropFirst() {
+            for (index, layer) in stride(from: l, through: 0, by: -1).enumerated().dropFirst() {
                 delta <~ σ̇(weights[layer] • neurons[layer] + biases[layer]) * (weights[layer + 1].ᵀ • delta)
                 nabla_w <~ delta • neurons[layer].ᵀ
                 nabla_b <~ delta
@@ -319,7 +319,7 @@ public extension NeuralNetwork {
         
         input.enumerated().forEach { neurons[0][$0] = $1 }
         
-        for layer in (0 ... networkInfo.hiddenLayers) {
+        for layer in (0 ... networkInfo.hiddenLayersSizes.count) {
             neurons[layer + 1] <~ σ(weights[layer] • neurons[layer] + biases[layer])
         }
 

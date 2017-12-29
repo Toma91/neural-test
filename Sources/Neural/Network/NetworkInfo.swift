@@ -7,16 +7,14 @@
 
 public struct NetworkInfo {
     
-    public let inputSize:       Int
+    public let inputSize:           Int
 
-    public let hiddenLayers:    Int
+    public let hiddenLayersSizes:   [Int]
     
-    public let hiddenLayerSize: Int
-    
-    public let outputSize:      Int
+    public let outputSize:          Int
     
     
-    public var biasesSize: Int {
+    /*public var biasesSize: Int {
         return hiddenLayerSize * hiddenLayers + outputSize
     }
     
@@ -28,13 +26,12 @@ public struct NetworkInfo {
         return inputSize * hiddenLayerSize
             + hiddenLayerSize * hiddenLayerSize * (hiddenLayers - 1)
             + hiddenLayerSize * outputSize
-    }
+    }*/
     
     
-    public init(inputSize: Int, hiddenLayers: Int, hiddenLayerSize: Int, outputSize: Int) {
+    public init(inputSize: Int, hiddenLayersSizes: [Int], outputSize: Int) {
         self.inputSize          = inputSize
-        self.hiddenLayers       = hiddenLayers
-        self.hiddenLayerSize    = hiddenLayerSize
+        self.hiddenLayersSizes  = hiddenLayersSizes
         self.outputSize         = outputSize
     }
 
