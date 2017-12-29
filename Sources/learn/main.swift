@@ -24,6 +24,10 @@ case "train":
     let bs = Int(CommandLine.arguments[7]) ?? 1
     let et = Double(CommandLine.arguments[8]) ?? 1
 
+    print("epochs:", ep)
+    print("batch_size:", bs)
+    print("eta:", et)
+    
     guard
         let trainer = Trainer(imagesPath: CommandLine.arguments[2], labelsPath: CommandLine.arguments[3], epochs: ep, batchSize: bs, eta: et),
         let tester = Tester(imagesPath: CommandLine.arguments[4], labelsPath: CommandLine.arguments[5])
