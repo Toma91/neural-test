@@ -30,7 +30,7 @@ class Tester {
             return nil
         }
         
-        guard labels.dimensions.count == 3 else {
+        guard labels.dimensions.count == 1 else {
             print("Labels file must have 1 dimension")
             return nil
         }

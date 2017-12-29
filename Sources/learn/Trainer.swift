@@ -37,7 +37,7 @@ class Trainer {
             return nil
         }
 
-        guard labels.dimensions.count == 3 else {
+        guard labels.dimensions.count == 1 else {
             print("Labels file must have 1 dimension")
             return nil
         }
@@ -59,7 +59,7 @@ class Trainer {
         let network = NeuralNetwork(
             networkInfo: NetworkInfo(
                 inputSize: images.dimensions.suffix(from: 1).reduce(1, *),
-                hiddenLayers: 2,
+                hiddenLayers: 1,
                 hiddenLayerSize: 16,
                 outputSize: 10
             )
