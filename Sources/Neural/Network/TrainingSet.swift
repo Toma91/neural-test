@@ -13,8 +13,6 @@ public protocol TrainingSet {
 
     associatedtype MiniBatchSequence: Sequence where MiniBatchSequence.Element == MiniBatch
     
-    func shuffle()
-
     func batches(ofSize size: Int) -> MiniBatchSequence
     
 }

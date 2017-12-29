@@ -149,24 +149,17 @@ public extension NeuralNetwork {
         fillWeightsRandom()
         fillBiasesRandom()
 
-        trainingSet.shuffle()
-
         for e in 0 ..< epochs {
             print("epoch \(e)")
+            let t = get_timestamp()
 
             for (i, miniBatch) in trainingSet.batches(ofSize: batchSize).enumerated() {
                 print("batch \(i)")
 
-                let itm = miniBatch.first!
-                
-                let predictedOutputBefore = predict(input: itm.input)
-                print("Error (before):", zip(predictedOutputBefore, itm.expectedOutput).map(-).map({ $0 * $0 }).reduce(0, +))
-
                 miniBatchTrain(miniBatch: miniBatch, eta: eta)
-
-                let predictedOutputAfter = predict(input: itm.input)
-                print("Error (after):", zip(predictedOutputAfter, itm.expectedOutput).map(-).map({ $0 * $0 }).reduce(0, +))
             }
+            
+            print("epoch \(e) done in \(get_timestamp() - t) s")
         }
 
         
@@ -279,6 +272,13 @@ public extension NeuralNetwork {
 
 private extension NeuralNetwork {
    
+    func get_timestamp() -> Double {
+        var t = timeval()
+        gettimeofday(&t, nil)
+        
+        return Double(t.tv_sec) + Double(t.tv_usec) / 1_000_000
+    }
+    
     func random_uniform(min: Double, max: Double) -> Double {
         let r = Double(arc4random()) / Double(UInt32.max)
         
